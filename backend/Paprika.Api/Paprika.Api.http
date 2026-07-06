@@ -1,0 +1,6 @@
+@Paprika.Api_HostAddress = http://localhost:5276
+
+GET {{Paprika.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
