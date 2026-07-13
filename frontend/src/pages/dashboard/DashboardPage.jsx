@@ -10,7 +10,6 @@ import {
   LogOut,
   Bell,
   Search,
-  Plus,
   SlidersHorizontal,
   ClipboardCheck,
   PlayCircle,
@@ -19,6 +18,9 @@ import {
   Eye,
   ChevronRight,
   ChevronLeft,
+  Check,
+  Circle,
+  CircleDot,
 } from "lucide-react";
 import bhLogo from "../../assets/logo.png";
 
@@ -30,11 +32,76 @@ const summaryCards = [
 ];
 
 const workOrders = [
-  { order: "668", op: "OP - 5", dept: "QC", assign: "Production Team", status: "RUNNING", progress: 45 },
-  { order: "669", op: "OP - 100", dept: "ME", assign: "Warehouse Team", status: "AWAITING", progress: 60 },
-  { order: "670", op: "OP - 500", dept: "WELD", assign: "Quality Team", status: "REVIEW", progress: 25 },
-  { order: "671", op: "OP - 75", dept: "QC", assign: "Quality Team", status: "RUNNING", progress: 80 },
-  { order: "672", op: "OP - 200", dept: "ME", assign: "Production Team", status: "AWAITING", progress: 30 },
+  { 
+    order: "668", 
+    op: "OP - 5", 
+    dept: "QC", 
+    assign: "Production Team", 
+    status: "RUNNING", 
+    stages: [
+      { name: "ME", status: "completed" },
+      { name: "QC", status: "completed" },
+      { name: "WELD", status: "active" },
+      { name: "OSP", status: "pending" },
+      { name: "WH", status: "pending" },
+    ]
+  },
+  { 
+    order: "669", 
+    op: "OP - 100", 
+    dept: "ME", 
+    assign: "Warehouse Team", 
+    status: "AWAITING",
+    stages: [
+      { name: "ME", status: "completed" },
+      { name: "QC", status: "pending" },
+      { name: "WELD", status: "pending" },
+      { name: "OSP", status: "pending" },
+      { name: "WH", status: "pending" },
+    ]
+  },
+  { 
+    order: "670", 
+    op: "OP - 500", 
+    dept: "WELD", 
+    assign: "Quality Team", 
+    status: "REVIEW",
+    stages: [
+      { name: "ME", status: "completed" },
+      { name: "QC", status: "completed" },
+      { name: "WELD", status: "completed" },
+      { name: "OSP", status: "pending" },
+      { name: "WH", status: "pending" },
+    ]
+  },
+  { 
+    order: "671", 
+    op: "OP - 75", 
+    dept: "QC", 
+    assign: "Quality Team", 
+    status: "RUNNING",
+    stages: [
+      { name: "ME", status: "completed" },
+      { name: "QC", status: "completed" },
+      { name: "WELD", status: "active" },
+      { name: "OSP", status: "pending" },
+      { name: "WH", status: "pending" },
+    ]
+  },
+  { 
+    order: "672", 
+    op: "OP - 200", 
+    dept: "ME", 
+    assign: "Production Team", 
+    status: "AWAITING",
+    stages: [
+      { name: "ME", status: "pending" },
+      { name: "QC", status: "pending" },
+      { name: "WELD", status: "pending" },
+      { name: "OSP", status: "pending" },
+      { name: "WH", status: "pending" },
+    ]
+  },
 ];
 
 function StatusBadge({ status }) {
@@ -48,6 +115,37 @@ function StatusBadge({ status }) {
   const statusInfo = statusMap[key] || statusMap.running;
   
   return <span className={`status-badge ${statusInfo.class}`}>{statusInfo.label}</span>;
+}
+
+function StageTimeline({ stages }) {
+  const getIcon = (status) => {
+    switch(status) {
+      case 'completed':
+        return <Check size={14} className="stage-icon completed" />;
+      case 'active':
+        return <CircleDot size={14} className="stage-icon active" />;
+      case 'pending':
+        return <Circle size={14} className="stage-icon pending" />;
+      default:
+        return <Circle size={14} className="stage-icon pending" />;
+    }
+  };
+
+  return (
+    <div className="stage-timeline">
+      {stages.map((stage, index) => (
+        <div key={index} className="stage-item">
+          <div className="stage-icon-wrapper">
+            {getIcon(stage.status)}
+            {index < stages.length - 1 && (
+              <div className={`stage-line ${stage.status === 'completed' ? 'completed' : ''}`} />
+            )}
+          </div>
+          <span className={`stage-name ${stage.status}`}>{stage.name}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function DashboardPage() {
@@ -150,100 +248,63 @@ export default function DashboardPage() {
           ))}
         </section>
 
-        {/* Chart Section - Line Diagram */}
+        {/* Chart Section - Bar Chart */}
         <section className="chart-section">
           <div className="chart-header">
             <div className="chart-title-group">
-              <h2 className="chart-title">Production Velocity</h2>
-              <p className="chart-subtitle">Weekly output analytics</p>
+              <h2 className="chart-title">Weekly Completed Work Orders</h2>
+              <p className="chart-subtitle">Total completed work orders per day</p>
             </div>
             <div className="chart-controls">
               <div className="chart-legend">
                 <span className="legend-item">
-                  <span className="legend-dot running"></span>
-                  Production
-                </span>
-                <span className="legend-item">
-                  <span className="legend-dot target"></span>
-                  Target
+                  <span className="legend-dot completed"></span>
+                  Completed
                 </span>
               </div>
-              <button className="btn-outline">Current Week</button>
+              <button className="btn-outline">This Week</button>
             </div>
           </div>
           
-          {/* Line Chart */}
-          <div className="line-chart-container">
-            <svg className="line-chart" viewBox="0 0 900 350" preserveAspectRatio="none">
-              {/* Grid lines */}
-              <line x1="0" y1="300" x2="900" y2="300" stroke="#e5e7eb" strokeWidth="1" />
-              <line x1="0" y1="225" x2="900" y2="225" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
-              <line x1="0" y1="150" x2="900" y2="150" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
-              <line x1="0" y1="75" x2="900" y2="75" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
-              
-              {/* Y-axis labels */}
-              <text x="0" y="310" className="chart-label">0</text>
-              <text x="0" y="235" className="chart-label">25</text>
-              <text x="0" y="160" className="chart-label">50</text>
-              <text x="0" y="85" className="chart-label">75</text>
-              <text x="0" y="15" className="chart-label">100</text>
-              
-              {/* Target Line (dashed) */}
-              <polyline
-                points="60,150 200,135 340,142 480,127 620,120 760,112"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="2.5"
-                strokeDasharray="8,4"
-              />
-              
-              {/* Production Line with gradient */}
-              <defs>
-                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              
-              {/* Area under the line */}
-              <polygon
-                points="60,300 60,170 200,140 340,115 480,160 620,85 760,120 760,300"
-                fill="url(#areaGradient)"
-              />
-              
-              {/* Production Line */}
-              <polyline
-                points="60,170 200,140 340,115 480,160 620,85 760,120"
-                fill="none"
-                stroke="url(#lineGradient)"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              
-              {/* Data points */}
-              <circle cx="60" cy="170" r="7" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="200" cy="140" r="7" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="340" cy="115" r="7" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="480" cy="160" r="7" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="620" cy="85" r="7" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="760" cy="120" r="7" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-              
-              {/* Glow effect */}
-              <circle cx="620" cy="85" r="12" fill="#3b82f6" opacity="0.15" />
-              
-              {/* X-axis labels */}
-              <text x="60" y="330" className="chart-label">Mon</text>
-              <text x="200" y="330" className="chart-label">Tue</text>
-              <text x="340" y="330" className="chart-label">Wed</text>
-              <text x="480" y="330" className="chart-label">Thu</text>
-              <text x="620" y="330" className="chart-label">Fri</text>
-              <text x="760" y="330" className="chart-label">Sat</text>
-            </svg>
+          {/* Bar Chart */}
+          <div className="bar-chart-container">
+            <div className="bar-chart">
+              <div className="bar-item" style={{ height: '80%' }}>
+                <div className="bar-value">23</div>
+                <div className="bar-bar" style={{ height: '80%' }}></div>
+                <div className="bar-label">Mon</div>
+              </div>
+              <div className="bar-item" style={{ height: '90%' }}>
+                <div className="bar-value">27</div>
+                <div className="bar-bar" style={{ height: '90%' }}></div>
+                <div className="bar-label">Tue</div>
+              </div>
+              <div className="bar-item" style={{ height: '100%' }}>
+                <div className="bar-value">31</div>
+                <div className="bar-bar" style={{ height: '100%' }}></div>
+                <div className="bar-label">Wed</div>
+              </div>
+              <div className="bar-item" style={{ height: '60%' }}>
+                <div className="bar-value">18</div>
+                <div className="bar-bar" style={{ height: '60%' }}></div>
+                <div className="bar-label">Thu</div>
+              </div>
+              <div className="bar-item" style={{ height: '95%' }}>
+                <div className="bar-value">35</div>
+                <div className="bar-bar" style={{ height: '95%' }}></div>
+                <div className="bar-label">Fri</div>
+              </div>
+              <div className="bar-item" style={{ height: '45%' }}>
+                <div className="bar-value">14</div>
+                <div className="bar-bar" style={{ height: '45%' }}></div>
+                <div className="bar-label">Sat</div>
+              </div>
+              <div className="bar-item" style={{ height: '30%' }}>
+                <div className="bar-value">9</div>
+                <div className="bar-bar" style={{ height: '30%' }}></div>
+                <div className="bar-label">Sun</div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -289,15 +350,7 @@ export default function DashboardPage() {
                     <td>{work.assign}</td>
                     <td><StatusBadge status={work.status} /></td>
                     <td>
-                      <div className="progress-container">
-                        <div className="progress-bar">
-                          <div 
-                            className="progress-fill" 
-                            style={{ width: `${work.progress}%` }}
-                          ></div>
-                        </div>
-                        <span className="progress-text">{work.progress}%</span>
-                      </div>
+                      <StageTimeline stages={work.stages} />
                     </td>
                     <td>
                       <button className="btn-action">OPEN</button>
