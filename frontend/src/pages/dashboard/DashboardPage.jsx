@@ -21,8 +21,12 @@ import {
   Check,
   Circle,
   CircleDot,
+  ChevronDown,
+  Filter,
+  X,
 } from "lucide-react";
 import bhLogo from "../../assets/logo.png";
+import { useState } from "react";
 
 const summaryCards = [
   { title: "New Request", value: 128, icon: <ClipboardCheck size={20} />, color: "#3b82f6" },
@@ -31,7 +35,7 @@ const summaryCards = [
   { title: "Completed", value: 22, icon: <CheckCircle2 size={20} />, color: "#10b981" },
 ];
 
-const workOrders = [
+const allWorkOrders = [
   { 
     order: "668", 
     op: "OP - 5", 
@@ -149,6 +153,38 @@ function StageTimeline({ stages }) {
 }
 
 export default function DashboardPage() {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("ALL");
+  const [workOrders, setWorkOrders] = useState(allWorkOrders);
+
+  const statusOptions = [
+    { value: "ALL", label: "All Status" },
+    { value: "RUNNING", label: "Running" },
+    { value: "AWAITING", label: "Awaiting" },
+    { value: "REVIEW", label: "Review" },
+  ];
+
+  const handleFilterToggle = () => {
+    setIsFilterOpen(!isFilterOpen);
+  };
+
+  const handleStatusSelect = (status) => {
+    setSelectedStatus(status);
+    setIsFilterOpen(false);
+    
+    if (status === "ALL") {
+      setWorkOrders(allWorkOrders);
+    } else {
+      const filtered = allWorkOrders.filter(order => order.status === status);
+      setWorkOrders(filtered);
+    }
+  };
+
+  const getStatusCount = (status) => {
+    if (status === "ALL") return allWorkOrders.length;
+    return allWorkOrders.filter(order => order.status === status).length;
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
@@ -316,10 +352,51 @@ export default function DashboardPage() {
               <p className="table-subtitle">Live production tracking</p>
             </div>
             <div className="table-actions">
-              <button className="btn-secondary">
-                <SlidersHorizontal size={16} />
-                <span>Status</span>
-              </button>
+              {/* Status Filter Button with Dropdown */}
+              <div className="filter-container">
+                <button 
+                  className="btn-filter"
+                  onClick={handleFilterToggle}
+                >
+                  <SlidersHorizontal size={16} />
+                  <span>Status</span>
+                  <ChevronDown size={14} className={`filter-chevron ${isFilterOpen ? 'open' : ''}`} />
+                  {selectedStatus !== "ALL" && (
+                    <span className="filter-badge">{getStatusCount(selectedStatus)}</span>
+                  )}
+                </button>
+                
+                {isFilterOpen && (
+                  <div className="filter-dropdown">
+                    <div className="filter-dropdown-header">
+                      <Filter size={14} />
+                      <span>Filter by Status</span>
+                      <button 
+                        className="filter-close"
+                        onClick={() => setIsFilterOpen(false)}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div className="filter-options">
+                      {statusOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          className={`filter-option ${selectedStatus === option.value ? 'active' : ''}`}
+                          onClick={() => handleStatusSelect(option.value)}
+                        >
+                          <span className="filter-option-label">{option.label}</span>
+                          <span className="filter-option-count">{getStatusCount(option.value)}</span>
+                          {selectedStatus === option.value && (
+                            <Check size={14} className="filter-option-check" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button className="btn-view-all">
                 <Eye size={16} />
                 <span>View All</span>
@@ -342,21 +419,29 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {workOrders.map((work) => (
-                  <tr key={work.order}>
-                    <td className="order-id">{work.order}</td>
-                    <td>{work.op}</td>
-                    <td>{work.dept}</td>
-                    <td>{work.assign}</td>
-                    <td><StatusBadge status={work.status} /></td>
-                    <td>
-                      <StageTimeline stages={work.stages} />
-                    </td>
-                    <td>
-                      <button className="btn-action">OPEN</button>
+                {workOrders.length > 0 ? (
+                  workOrders.map((work) => (
+                    <tr key={work.order}>
+                      <td className="order-id">{work.order}</td>
+                      <td>{work.op}</td>
+                      <td>{work.dept}</td>
+                      <td>{work.assign}</td>
+                      <td><StatusBadge status={work.status} /></td>
+                      <td>
+                        <StageTimeline stages={work.stages} />
+                      </td>
+                      <td>
+                        <button className="btn-action">OPEN</button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="empty-state">
+                      <p>No work orders found for this status</p>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -364,6 +449,9 @@ export default function DashboardPage() {
           <div className="table-footer">
             <p className="table-count">
               Showing <strong>{workOrders.length}</strong> active work orders
+              {selectedStatus !== "ALL" && (
+                <span className="filter-info"> (filtered by {selectedStatus.toLowerCase()})</span>
+              )}
             </p>
             <div className="table-pagination">
               <button className="pagination-btn pagination-prev">
