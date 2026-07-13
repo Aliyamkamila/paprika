@@ -41,60 +41,97 @@ const currentUser = {
   department: "WELD",
 };
 
-// Mapping operation ke department
+// Mapping operation ke department - LENGKAP dari data yang diberikan
 const opDeptMap = {
-  "OP - 5": "ME",
-  "OP - 100": "WELD",
-  "OP - 200": "QC",
-  "OP - 400": "QC",
-  "OP - 500": "TA",
-  "OP - 600": "QC",
-  "OP - 1000": "WELD",
-  "OP - 1300": "QC",
-  "OP - 1500": "WELD",
-  "OP - 1600": "WELD",
-  "OP - 1700": "QC",
-  "OP - 1800": "OSP",
-  "OP - 3000": "WELD",
-  "OP - 3100": "QC",
-  "OP - 3500": "WELD",
-  "OP - 3600": "WELD",
-  "OP - 3700": "QC",
-  "OP - 4000": "OSP",
-  "OP - 4100": "OSP",
-  "OP - 4500": "QC",
-  "OP - 4600": "QC",
-  "OP - 5000": "OSP",
-  "OP - 5100": "OSP",
-  "OP - 5500": "QC",
-  "OP - 5600": "QC",
-  "OP - 5800": "QC",
-  "OP - 6000": "TA",
-  "OP - 6500": "QC",
-  "OP - 6700": "TA",
-  "OP - 6800": "OSP",
-  "OP - 9500": "QC",
-  "OP - 9900": "WHS",
+  "OP-5": "ME",
+  "OP-100": "WELD",
+  "OP-200": "QC",
+  "OP-400": "QC",
+  "OP-500": "TA",
+  "OP-600": "QC",
+  "OP-1000": "WELD",
+  "OP-1300": "QC",
+  "OP-1500": "WELD",
+  "OP-1600": "WELD",
+  "OP-1700": "QC",
+  "OP-1800": "OSP",
+  "OP-3000": "WELD",
+  "OP-3100": "QC",
+  "OP-3500": "WELD",
+  "OP-3600": "WELD",
+  "OP-3700": "QC",
+  "OP-4000": "OSP",
+  "OP-4100": "OSP",
+  "OP-4500": "QC",
+  "OP-4600": "QC",
+  "OP-5000": "OSP",
+  "OP-5100": "OSP",
+  "OP-5500": "QC",
+  "OP-5600": "QC",
+  "OP-5800": "QC",
+  "OP-6000": "TA",
+  "OP-6500": "QC",
+  "OP-6700": "TA",
+  "OP-6800": "OSP",
+  "OP-9500": "QC",
+  "OP-9900": "WHS",
 };
 
-// Semua department yang mungkin
-const allDepts = ["ME", "QC", "WELD", "OSP", "WH", "TA", "WHS"];
+// Data operation lengkap dengan detail
+const allOperations = [
+  { op: "OP-5", dept: "ME", desc: "Initial Machining", machine: "CNC-01", stdTime: "2.5", noted: "OK - Setup completed" },
+  { op: "OP-100", dept: "WELD", desc: "Torch Cut Bevel Pipe", machine: "WELD-01", stdTime: "3.0", noted: "In progress - Welding" },
+  { op: "OP-200", dept: "QC", desc: "Quality Inspection", machine: "QC-01", stdTime: "1.5", noted: "Pending inspection" },
+  { op: "OP-400", dept: "QC", desc: "Dimensional Check", machine: "QC-02", stdTime: "2.0", noted: "All dimensions verified" },
+  { op: "OP-500", dept: "TA", desc: "Test Pump Performance", machine: "TA-01", stdTime: "4.0", noted: "Test running" },
+  { op: "OP-600", dept: "QC", desc: "Material Verification", machine: "QC-03", stdTime: "1.0", noted: "Material certified" },
+  { op: "OP-1000", dept: "WELD", desc: "Welding Assembly", machine: "WELD-02", stdTime: "5.0", noted: "Assembly in progress" },
+  { op: "OP-1300", dept: "QC", desc: "NDT Inspection", machine: "QC-04", stdTime: "2.5", noted: "NDT passed" },
+  { op: "OP-1500", dept: "WELD", desc: "Finish Welding", machine: "WELD-03", stdTime: "3.5", noted: "Finishing weld" },
+  { op: "OP-1600", dept: "WELD", desc: "Welding Repair", machine: "WELD-04", stdTime: "2.0", noted: "Repair completed" },
+  { op: "OP-1700", dept: "QC", desc: "Final QC Check", machine: "QC-05", stdTime: "1.5", noted: "QC approved" },
+  { op: "OP-1800", dept: "OSP", desc: "Final Assembly & Coating", machine: "OSP-01", stdTime: "6.0", noted: "Coating applied" },
+  { op: "OP-3000", dept: "WELD", desc: "Structural Welding", machine: "WELD-05", stdTime: "4.5", noted: "Structure welded" },
+  { op: "OP-3100", dept: "QC", desc: "Welding Inspection", machine: "QC-06", stdTime: "2.0", noted: "Weld inspected" },
+  { op: "OP-3500", dept: "WELD", desc: "Pipe Welding", machine: "WELD-06", stdTime: "3.0", noted: "Pipe welded" },
+  { op: "OP-3600", dept: "WELD", desc: "Pipe Beveling", machine: "WELD-07", stdTime: "2.5", noted: "Beveling done" },
+  { op: "OP-3700", dept: "QC", desc: "Pipe QC", machine: "QC-07", stdTime: "1.5", noted: "Pipe QC passed" },
+  { op: "OP-4000", dept: "OSP", desc: "OSP Machining", machine: "OSP-02", stdTime: "4.0", noted: "Machining completed" },
+  { op: "OP-4100", dept: "OSP", desc: "OSP Finishing", machine: "OSP-03", stdTime: "3.0", noted: "Finishing done" },
+  { op: "OP-4500", dept: "QC", desc: "OSP QC", machine: "QC-08", stdTime: "1.5", noted: "OSP QC passed" },
+  { op: "OP-4600", dept: "QC", desc: "Final OSP QC", machine: "QC-09", stdTime: "1.0", noted: "Final OSP approved" },
+  { op: "OP-5000", dept: "OSP", desc: "OSP Coating", machine: "OSP-04", stdTime: "5.0", noted: "Coating in progress" },
+  { op: "OP-5100", dept: "OSP", desc: "OSP Coating QC", machine: "QC-10", stdTime: "2.0", noted: "Coating QC passed" },
+  { op: "OP-5500", dept: "QC", desc: "Coating Inspection", machine: "QC-11", stdTime: "1.5", noted: "Coating inspected" },
+  { op: "OP-5600", dept: "QC", desc: "Final Coating QC", machine: "QC-12", stdTime: "1.0", noted: "Final coating ok" },
+  { op: "OP-5800", dept: "QC", desc: "Package QC", machine: "QC-13", stdTime: "1.5", noted: "Package inspected" },
+  { op: "OP-6000", dept: "TA", desc: "Final Testing", machine: "TA-02", stdTime: "6.0", noted: "Final test running" },
+  { op: "OP-6500", dept: "QC", desc: "Test QC", machine: "QC-14", stdTime: "2.0", noted: "Test QC passed" },
+  { op: "OP-6700", dept: "TA", desc: "Retesting", machine: "TA-03", stdTime: "4.0", noted: "Retest completed" },
+  { op: "OP-6800", dept: "OSP", desc: "OSP Packaging", machine: "OSP-05", stdTime: "3.0", noted: "Packaging done" },
+  { op: "OP-9500", dept: "QC", desc: "Final QC Approval", machine: "QC-15", stdTime: "2.0", noted: "Final QC approved" },
+  { op: "OP-9900", dept: "WHS", desc: "Warehouse Storage", machine: "WHS-01", stdTime: "1.0", noted: "Stored in warehouse" },
+];
 
-// Generate timeline berdasarkan operation
+// Generate timeline berdasarkan current operation
 const generateTimeline = (currentOp) => {
-  const dept = opDeptMap[currentOp] || "QC";
-  const currentIndex = allDepts.indexOf(dept);
+  const currentIndex = allOperations.findIndex(op => op.op === currentOp);
+  const safeIndex = currentIndex === -1 ? 0 : currentIndex;
   
-  return allDepts.map((deptName, index) => {
+  return allOperations.map((op, index) => {
     let state = "waiting";
-    if (index < currentIndex) state = "completed";
-    else if (index === currentIndex) state = "current";
+    if (index < safeIndex) state = "completed";
+    else if (index === safeIndex) state = "current";
     
     return {
-      dept: deptName,
+      dept: op.dept,
       state: state,
       detail: {
-        operation: `OP - ${(index + 1) * 5}`,
+        operation: op.op,
+        description: op.desc,
+        machine: op.machine,
+        stdTime: op.stdTime,
+        noted: op.noted,
         status: state === "completed" ? "Completed" : 
                 state === "current" ? "In Progress" : "Waiting",
         engineer: state === "completed" ? "Aliya Kamila" : 
@@ -122,12 +159,15 @@ const workOrders = [
     status: "RUNNING",
     progress: 45,
     priority: "Normal",
-    currentOperation: "OP - 100",
+    currentOperation: "OP-100",
     currentDepartment: "WELD",
     operationDetail: {
-      operation: "100",
+      operation: "OP-100",
+      description: "Torch Cut Bevel Pipe",
       department: "WELD",
-      instruction: "Torch Cut Bevel Pipe",
+      machine: "WELD-01",
+      stdTime: "3.0",
+      noted: "In progress - Welding",
       scheduled: "12 Jul",
       due: "13 Jul",
     },
@@ -137,7 +177,7 @@ const workOrders = [
       { id: 3, text: "Follow Drawing H443737", checked: false },
       { id: 4, text: "Verify Material", checked: false },
     ],
-    timeline: generateTimeline("OP - 100"),
+    timeline: generateTimeline("OP-100"),
   },
   {
     id: "669",
@@ -152,12 +192,15 @@ const workOrders = [
     status: "RUNNING",
     progress: 60,
     priority: "High",
-    currentOperation: "OP - 500",
+    currentOperation: "OP-500",
     currentDepartment: "TA",
     operationDetail: {
-      operation: "500",
+      operation: "OP-500",
+      description: "Test Pump Performance",
       department: "TA",
-      instruction: "Test pump performance",
+      machine: "TA-01",
+      stdTime: "4.0",
+      noted: "Test running",
       scheduled: "15 Jul",
       due: "20 Jul",
     },
@@ -167,7 +210,7 @@ const workOrders = [
       { id: 3, text: "Test run", checked: false },
       { id: 4, text: "Final inspection", checked: false },
     ],
-    timeline: generateTimeline("OP - 500"),
+    timeline: generateTimeline("OP-500"),
   },
   {
     id: "670",
@@ -182,12 +225,15 @@ const workOrders = [
     status: "AWAITING",
     progress: 30,
     priority: "Normal",
-    currentOperation: "OP - 200",
+    currentOperation: "OP-200",
     currentDepartment: "QC",
     operationDetail: {
-      operation: "200",
+      operation: "OP-200",
+      description: "Quality Inspection",
       department: "QC",
-      instruction: "Quality inspection",
+      machine: "QC-01",
+      stdTime: "1.5",
+      noted: "Pending inspection",
       scheduled: "18 Jul",
       due: "25 Jul",
     },
@@ -196,7 +242,7 @@ const workOrders = [
       { id: 2, text: "Dimensional check", checked: false },
       { id: 3, text: "Material verification", checked: false },
     ],
-    timeline: generateTimeline("OP - 200"),
+    timeline: generateTimeline("OP-200"),
   },
   {
     id: "671",
@@ -211,12 +257,15 @@ const workOrders = [
     status: "REVIEW",
     progress: 85,
     priority: "High",
-    currentOperation: "OP - 1800",
+    currentOperation: "OP-1800",
     currentDepartment: "OSP",
     operationDetail: {
-      operation: "1800",
+      operation: "OP-1800",
+      description: "Final Assembly & Coating",
       department: "OSP",
-      instruction: "Final assembly and coating",
+      machine: "OSP-01",
+      stdTime: "6.0",
+      noted: "Coating applied",
       scheduled: "28 Jul",
       due: "30 Jul",
     },
@@ -226,7 +275,7 @@ const workOrders = [
       { id: 3, text: "Final inspection", checked: true },
       { id: 4, text: "Packaging", checked: false },
     ],
-    timeline: generateTimeline("OP - 1800"),
+    timeline: generateTimeline("OP-1800"),
   },
   {
     id: "672",
@@ -241,12 +290,15 @@ const workOrders = [
     status: "RUNNING",
     progress: 20,
     priority: "Normal",
-    currentOperation: "OP - 5",
+    currentOperation: "OP-5",
     currentDepartment: "ME",
     operationDetail: {
-      operation: "5",
+      operation: "OP-5",
+      description: "Initial Machining",
       department: "ME",
-      instruction: "Initial machining",
+      machine: "CNC-01",
+      stdTime: "2.5",
+      noted: "OK - Setup completed",
       scheduled: "01 Aug",
       due: "05 Aug",
     },
@@ -255,7 +307,7 @@ const workOrders = [
       { id: 2, text: "Rough cut", checked: false },
       { id: 3, text: "Finish cut", checked: false },
     ],
-    timeline: generateTimeline("OP - 5"),
+    timeline: generateTimeline("OP-5"),
   },
   {
     id: "673",
@@ -270,12 +322,15 @@ const workOrders = [
     status: "AWAITING",
     progress: 10,
     priority: "High",
-    currentOperation: "OP - 9900",
+    currentOperation: "OP-9900",
     currentDepartment: "WHS",
     operationDetail: {
-      operation: "9900",
+      operation: "OP-9900",
+      description: "Warehouse Storage",
       department: "WHS",
-      instruction: "Warehouse storage",
+      machine: "WHS-01",
+      stdTime: "1.0",
+      noted: "Stored in warehouse",
       scheduled: "08 Aug",
       due: "10 Aug",
     },
@@ -283,7 +338,7 @@ const workOrders = [
       { id: 1, text: "Inspect storage area", checked: false },
       { id: 2, text: "Prepare packaging", checked: false },
     ],
-    timeline: generateTimeline("OP - 9900"),
+    timeline: generateTimeline("OP-9900"),
   },
 ];
 
@@ -331,6 +386,21 @@ function TimelinePopup({ item, onClose }) {
             <span className="wo-popup-dept-value">{dept}</span>
           </div>
           
+          <div className="wo-popup-info-row">
+            <div className="wo-popup-info-item">
+              <span className="wo-popup-info-label">Description</span>
+              <span className="wo-popup-info-value">{detail.description}</span>
+            </div>
+            <div className="wo-popup-info-item">
+              <span className="wo-popup-info-label">Machine</span>
+              <span className="wo-popup-info-value">{detail.machine}</span>
+            </div>
+            <div className="wo-popup-info-item">
+              <span className="wo-popup-info-label">Std Time</span>
+              <span className="wo-popup-info-value">{detail.stdTime} hrs</span>
+            </div>
+          </div>
+          
           <div className="wo-popup-status-row">
             <div className="wo-popup-status-item">
               <span className="wo-popup-status-label">Status</span>
@@ -358,6 +428,15 @@ function TimelinePopup({ item, onClose }) {
             <div>
               <span className="wo-popup-remark-label">Remark</span>
               <span className="wo-popup-remark-value">{detail.remark}</span>
+            </div>
+          </div>
+
+          {/* Noted - Khusus dari masing-masing department */}
+          <div className="wo-popup-noted">
+            <ClipboardList size={14} className="wo-popup-noted-icon" />
+            <div>
+              <span className="wo-popup-noted-label">Noted</span>
+              <span className="wo-popup-noted-value">{detail.noted || "-"}</span>
             </div>
           </div>
           
@@ -388,7 +467,6 @@ export default function WorkOrderDetailPage() {
     return workOrders.find((w) => w.id === id) || workOrders[0];
   }, [id]);
 
-  const canGoToMyTask = wo.currentDepartment === currentUser.department;
   const completedCount = wo.timeline.filter(t => t.state === 'completed').length;
   const totalCount = wo.timeline.length;
   const progressPercent = Math.round((completedCount / totalCount) * 100);
@@ -437,7 +515,6 @@ export default function WorkOrderDetailPage() {
             <div className="wo-hero-title">
               <h1>{wo.woNumber}</h1>
               <StatusBadge status={wo.status} />
-              <span className="wo-hero-priority">{wo.priority}</span>
             </div>
             <p className="wo-hero-desc">{wo.description}</p>
             <div className="wo-hero-meta">
@@ -467,7 +544,7 @@ export default function WorkOrderDetailPage() {
               </div>
               <div className="wo-hero-stat-divider"></div>
               <div className="wo-hero-stat">
-                <div className="wo-hero-stat-value">OP-{wo.operationDetail.operation}</div>
+                <div className="wo-hero-stat-value">{wo.currentOperation}</div>
                 <div className="wo-hero-stat-label">Current Op</div>
               </div>
               <div className="wo-hero-stat-divider"></div>
@@ -476,13 +553,6 @@ export default function WorkOrderDetailPage() {
                 <div className="wo-hero-stat-label">Progress</div>
               </div>
             </div>
-            {canGoToMyTask && (
-              <Link to="/my-task" className="wo-hero-btn">
-                <Check size={16} />
-                Go to My Task
-                <ChevronRight size={14} />
-              </Link>
-            )}
           </div>
         </div>
 
@@ -494,64 +564,6 @@ export default function WorkOrderDetailPage() {
           </div>
           <div className="wo-progress-bar">
             <div className="wo-progress-fill" style={{ width: `${progressPercent}%` }}></div>
-          </div>
-        </div>
-
-        {/* Quick Info Cards */}
-        <div className="wo-quick-cards">
-          <div className="wo-quick-card">
-            <div className="wo-quick-card-icon" style={{ background: '#eef2ff', color: '#4f46e5' }}>
-              <Package size={18} />
-            </div>
-            <div>
-              <div className="wo-quick-card-label">Sales Order</div>
-              <div className="wo-quick-card-value">{wo.salesOrder}</div>
-            </div>
-          </div>
-          <div className="wo-quick-card">
-            <div className="wo-quick-card-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
-              <Hash size={18} />
-            </div>
-            <div>
-              <div className="wo-quick-card-label">Part Number</div>
-              <div className="wo-quick-card-value">{wo.partNumber}</div>
-            </div>
-          </div>
-          <div className="wo-quick-card">
-            <div className="wo-quick-card-icon" style={{ background: '#dbeafe', color: '#2563eb' }}>
-              <Clock size={18} />
-            </div>
-            <div>
-              <div className="wo-quick-card-label">Due Date</div>
-              <div className="wo-quick-card-value">{wo.dueDate}</div>
-            </div>
-          </div>
-          <div className="wo-quick-card">
-            <div className="wo-quick-card-icon" style={{ background: '#d1fae5', color: '#059669' }}>
-              <Building2 size={18} />
-            </div>
-            <div>
-              <div className="wo-quick-card-label">Department</div>
-              <div className="wo-quick-card-value">{wo.currentDepartment}</div>
-            </div>
-          </div>
-          <div className="wo-quick-card">
-            <div className="wo-quick-card-icon" style={{ background: '#fce4ec', color: '#dc2626' }}>
-              <AlertCircle size={18} />
-            </div>
-            <div>
-              <div className="wo-quick-card-label">Priority</div>
-              <div className="wo-quick-card-value">{wo.priority}</div>
-            </div>
-          </div>
-          <div className="wo-quick-card">
-            <div className="wo-quick-card-icon" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
-              <FileText size={18} />
-            </div>
-            <div>
-              <div className="wo-quick-card-label">Revision</div>
-              <div className="wo-quick-card-value">{wo.revision}</div>
-            </div>
           </div>
         </div>
 
@@ -617,12 +629,30 @@ export default function WorkOrderDetailPage() {
               <div className="wo-card-body">
                 <div className="wo-current-op-grid">
                   <div className="wo-current-op-item">
-                    <span className="wo-current-op-label">Operation</span>
-                    <span className="wo-current-op-value">OP - {wo.operationDetail.operation}</span>
+                    <span className="wo-current-op-label">Operation No</span>
+                    <span className="wo-current-op-value">{wo.operationDetail.operation}</span>
+                  </div>
+                  <div className="wo-current-op-item">
+                    <span className="wo-current-op-label">Description</span>
+                    <span className="wo-current-op-value">{wo.operationDetail.description}</span>
                   </div>
                   <div className="wo-current-op-item">
                     <span className="wo-current-op-label">Department</span>
                     <span className="wo-current-op-value">{wo.operationDetail.department}</span>
+                  </div>
+                  <div className="wo-current-op-item">
+                    <span className="wo-current-op-label">Machine / Code</span>
+                    <span className="wo-current-op-value">{wo.operationDetail.machine}</span>
+                  </div>
+                  <div className="wo-current-op-item">
+                    <span className="wo-current-op-label">Std Time</span>
+                    <span className="wo-current-op-value">{wo.operationDetail.stdTime} hrs</span>
+                  </div>
+                  <div className="wo-current-op-item">
+                    <span className="wo-current-op-label">Status</span>
+                    <span className="wo-current-op-value">
+                      <span className="wo-status-active">In Progress</span>
+                    </span>
                   </div>
                   <div className="wo-current-op-item full">
                     <span className="wo-current-op-label">Schedule</span>
@@ -630,6 +660,10 @@ export default function WorkOrderDetailPage() {
                       <CalendarDays size={14} className="inline-icon" />
                       {wo.operationDetail.scheduled} - {wo.operationDetail.due}
                     </span>
+                  </div>
+                  <div className="wo-current-op-item full">
+                    <span className="wo-current-op-label">Noted</span>
+                    <span className="wo-current-op-value">{wo.operationDetail.noted || "-"}</span>
                   </div>
                 </div>
 
