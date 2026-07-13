@@ -1,4 +1,5 @@
 import "./dashboard.css";
+import { Link } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -431,7 +432,7 @@ export default function DashboardPage() {
                         <StageTimeline stages={work.stages} />
                       </td>
                       <td>
-                        <button className="btn-action">OPEN</button>
+                        <Link to={`/work-order/${work.order}`} className="btn-action">OPEN</Link>
                       </td>
                     </tr>
                   ))
