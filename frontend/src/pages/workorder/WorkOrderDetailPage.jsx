@@ -41,6 +41,73 @@ const currentUser = {
   department: "WELD",
 };
 
+// Mapping operation ke department
+const opDeptMap = {
+  "OP - 5": "ME",
+  "OP - 100": "WELD",
+  "OP - 200": "QC",
+  "OP - 400": "QC",
+  "OP - 500": "TA",
+  "OP - 600": "QC",
+  "OP - 1000": "WELD",
+  "OP - 1300": "QC",
+  "OP - 1500": "WELD",
+  "OP - 1600": "WELD",
+  "OP - 1700": "QC",
+  "OP - 1800": "OSP",
+  "OP - 3000": "WELD",
+  "OP - 3100": "QC",
+  "OP - 3500": "WELD",
+  "OP - 3600": "WELD",
+  "OP - 3700": "QC",
+  "OP - 4000": "OSP",
+  "OP - 4100": "OSP",
+  "OP - 4500": "QC",
+  "OP - 4600": "QC",
+  "OP - 5000": "OSP",
+  "OP - 5100": "OSP",
+  "OP - 5500": "QC",
+  "OP - 5600": "QC",
+  "OP - 5800": "QC",
+  "OP - 6000": "TA",
+  "OP - 6500": "QC",
+  "OP - 6700": "TA",
+  "OP - 6800": "OSP",
+  "OP - 9500": "QC",
+  "OP - 9900": "WHS",
+};
+
+// Semua department yang mungkin
+const allDepts = ["ME", "QC", "WELD", "OSP", "WH", "TA", "WHS"];
+
+// Generate timeline berdasarkan operation
+const generateTimeline = (currentOp) => {
+  const dept = opDeptMap[currentOp] || "QC";
+  const currentIndex = allDepts.indexOf(dept);
+  
+  return allDepts.map((deptName, index) => {
+    let state = "waiting";
+    if (index < currentIndex) state = "completed";
+    else if (index === currentIndex) state = "current";
+    
+    return {
+      dept: deptName,
+      state: state,
+      detail: {
+        operation: `OP - ${(index + 1) * 5}`,
+        status: state === "completed" ? "Completed" : 
+                state === "current" ? "In Progress" : "Waiting",
+        engineer: state === "completed" ? "Aliya Kamila" : 
+                   state === "current" ? "Current User" : "-",
+        date: state === "completed" ? "12 Jul 2026" : 
+              state === "current" ? "13 Jul 2026" : "-",
+        remark: state === "completed" ? "Operation completed successfully" : 
+                state === "current" ? "Operation in progress" : "Pending"
+      }
+    };
+  });
+};
+
 const workOrders = [
   {
     id: "668",
@@ -55,7 +122,7 @@ const workOrders = [
     status: "RUNNING",
     progress: 45,
     priority: "Normal",
-    currentOperation: "OP100",
+    currentOperation: "OP - 100",
     currentDepartment: "WELD",
     operationDetail: {
       operation: "100",
@@ -70,85 +137,153 @@ const workOrders = [
       { id: 3, text: "Follow Drawing H443737", checked: false },
       { id: 4, text: "Verify Material", checked: false },
     ],
-    timeline: [
-      { 
-        dept: "ME", 
-        state: "completed",
-        detail: {
-          operation: "OP - 5",
-          status: "Completed",
-          engineer: "Aliya Kamila",
-          date: "10 Jul 2026",
-          remark: "OK - All dimensions verified"
-        }
-      },
-      { 
-        dept: "QC", 
-        state: "completed",
-        detail: {
-          operation: "OP - 10",
-          status: "Completed",
-          engineer: "Budi Santoso",
-          date: "11 Jul 2026",
-          remark: "Passed quality inspection"
-        }
-      },
-      { 
-        dept: "ME", 
-        state: "completed",
-        detail: {
-          operation: "OP - 15",
-          status: "Completed",
-          engineer: "Aliya Kamila",
-          date: "11 Jul 2026",
-          remark: "Machining completed"
-        }
-      },
-      { 
-        dept: "WELD", 
-        state: "current",
-        detail: {
-          operation: "OP - 100",
-          status: "In Progress",
-          engineer: "Current User",
-          date: "12 Jul 2026",
-          remark: "Welding in progress"
-        }
-      },
-      { 
-        dept: "QC", 
-        state: "waiting",
-        detail: {
-          operation: "OP - 105",
-          status: "Waiting",
-          engineer: "-",
-          date: "-",
-          remark: "Pending inspection"
-        }
-      },
-      { 
-        dept: "TA", 
-        state: "waiting",
-        detail: {
-          operation: "OP - 110",
-          status: "Waiting",
-          engineer: "-",
-          date: "-",
-          remark: "Pending heat treatment"
-        }
-      },
-      { 
-        dept: "WHS", 
-        state: "waiting",
-        detail: {
-          operation: "OP - 115",
-          status: "Waiting",
-          engineer: "-",
-          date: "-",
-          remark: "Pending warehouse"
-        }
-      },
+    timeline: generateTimeline("OP - 100"),
+  },
+  {
+    id: "669",
+    woNumber: "WO-669",
+    salesOrder: "SO-230046",
+    customer: "ExxonMobil",
+    partNumber: "PN-PUMP-6IN",
+    description: "Centrifugal Pump Assembly",
+    revision: "Rev B",
+    quantity: 12,
+    dueDate: "20 Jul 2026",
+    status: "RUNNING",
+    progress: 60,
+    priority: "High",
+    currentOperation: "OP - 500",
+    currentDepartment: "TA",
+    operationDetail: {
+      operation: "500",
+      department: "TA",
+      instruction: "Test pump performance",
+      scheduled: "15 Jul",
+      due: "20 Jul",
+    },
+    workInstructions: [
+      { id: 1, text: "Install pump components", checked: true },
+      { id: 2, text: "Align shaft", checked: true },
+      { id: 3, text: "Test run", checked: false },
+      { id: 4, text: "Final inspection", checked: false },
     ],
+    timeline: generateTimeline("OP - 500"),
+  },
+  {
+    id: "670",
+    woNumber: "WO-670",
+    salesOrder: "SO-230047",
+    customer: "Pertamina",
+    partNumber: "PN-COMP-12IN",
+    description: "Compressor Housing Assembly",
+    revision: "Rev A",
+    quantity: 8,
+    dueDate: "25 Jul 2026",
+    status: "AWAITING",
+    progress: 30,
+    priority: "Normal",
+    currentOperation: "OP - 200",
+    currentDepartment: "QC",
+    operationDetail: {
+      operation: "200",
+      department: "QC",
+      instruction: "Quality inspection",
+      scheduled: "18 Jul",
+      due: "25 Jul",
+    },
+    workInstructions: [
+      { id: 1, text: "Visual inspection", checked: true },
+      { id: 2, text: "Dimensional check", checked: false },
+      { id: 3, text: "Material verification", checked: false },
+    ],
+    timeline: generateTimeline("OP - 200"),
+  },
+  {
+    id: "671",
+    woNumber: "WO-671",
+    salesOrder: "SO-230048",
+    customer: "TotalEnergies",
+    partNumber: "PN-VALVE-10IN",
+    description: "Gate Valve Assembly",
+    revision: "Rev D",
+    quantity: 16,
+    dueDate: "30 Jul 2026",
+    status: "REVIEW",
+    progress: 85,
+    priority: "High",
+    currentOperation: "OP - 1800",
+    currentDepartment: "OSP",
+    operationDetail: {
+      operation: "1800",
+      department: "OSP",
+      instruction: "Final assembly and coating",
+      scheduled: "28 Jul",
+      due: "30 Jul",
+    },
+    workInstructions: [
+      { id: 1, text: "Assembly components", checked: true },
+      { id: 2, text: "Apply coating", checked: true },
+      { id: 3, text: "Final inspection", checked: true },
+      { id: 4, text: "Packaging", checked: false },
+    ],
+    timeline: generateTimeline("OP - 1800"),
+  },
+  {
+    id: "672",
+    woNumber: "WO-672",
+    salesOrder: "SO-230049",
+    customer: "BP",
+    partNumber: "PN-TURBINE-24",
+    description: "Turbine Blade Assembly",
+    revision: "Rev E",
+    quantity: 32,
+    dueDate: "05 Aug 2026",
+    status: "RUNNING",
+    progress: 20,
+    priority: "Normal",
+    currentOperation: "OP - 5",
+    currentDepartment: "ME",
+    operationDetail: {
+      operation: "5",
+      department: "ME",
+      instruction: "Initial machining",
+      scheduled: "01 Aug",
+      due: "05 Aug",
+    },
+    workInstructions: [
+      { id: 1, text: "Setup machine", checked: true },
+      { id: 2, text: "Rough cut", checked: false },
+      { id: 3, text: "Finish cut", checked: false },
+    ],
+    timeline: generateTimeline("OP - 5"),
+  },
+  {
+    id: "673",
+    woNumber: "WO-673",
+    salesOrder: "SO-230050",
+    customer: "Shell",
+    partNumber: "PN-HEAT-36",
+    description: "Heat Exchanger Assembly",
+    revision: "Rev A",
+    quantity: 6,
+    dueDate: "10 Aug 2026",
+    status: "AWAITING",
+    progress: 10,
+    priority: "High",
+    currentOperation: "OP - 9900",
+    currentDepartment: "WHS",
+    operationDetail: {
+      operation: "9900",
+      department: "WHS",
+      instruction: "Warehouse storage",
+      scheduled: "08 Aug",
+      due: "10 Aug",
+    },
+    workInstructions: [
+      { id: 1, text: "Inspect storage area", checked: false },
+      { id: 2, text: "Prepare packaging", checked: false },
+    ],
+    timeline: generateTimeline("OP - 9900"),
   },
 ];
 
@@ -470,7 +605,7 @@ export default function WorkOrderDetailPage() {
               </div>
             </div>
 
-            {/* Current Operation - RAPI */}
+            {/* Current Operation */}
             <div className="wo-card">
               <div className="wo-card-header">
                 <div className="wo-card-title">
@@ -480,7 +615,6 @@ export default function WorkOrderDetailPage() {
                 <span className="wo-card-badge active">Active</span>
               </div>
               <div className="wo-card-body">
-                {/* Info Operation */}
                 <div className="wo-current-op-grid">
                   <div className="wo-current-op-item">
                     <span className="wo-current-op-label">Operation</span>
@@ -499,10 +633,8 @@ export default function WorkOrderDetailPage() {
                   </div>
                 </div>
 
-                {/* Divider */}
                 <div className="wo-divider"></div>
 
-                {/* Work Instructions */}
                 <div className="wo-work-instructions">
                   <div className="wo-work-instructions-header">
                     <ClipboardList size={14} className="wo-work-instructions-icon" />
@@ -528,7 +660,7 @@ export default function WorkOrderDetailPage() {
             </div>
           </div>
 
-          {/* Right Column - Timeline */}
+          {/* Right Column - Timeline with Scroll */}
           <div className="wo-main-right">
             <div className="wo-card timeline-card">
               <div className="wo-card-header">
@@ -538,7 +670,7 @@ export default function WorkOrderDetailPage() {
                 </div>
                 <span className="wo-card-badge">{completedCount}/{totalCount}</span>
               </div>
-              <div className="wo-card-body">
+              <div className="wo-card-body wo-timeline-scroll">
                 <div className="wo-timeline">
                   {wo.timeline.map((t, i) => (
                     <div 

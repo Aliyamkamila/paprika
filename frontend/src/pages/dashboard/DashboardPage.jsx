@@ -4,9 +4,6 @@ import {
   LayoutDashboard,
   ClipboardList,
   CheckSquare,
-  Activity,
-  FileText,
-  BarChart3,
   Settings,
   LogOut,
   Bell,
@@ -36,20 +33,65 @@ const summaryCards = [
   { title: "Completed", value: 22, icon: <CheckCircle2 size={20} />, color: "#10b981" },
 ];
 
+// Mapping operation ke department
+const opDeptMap = {
+  "OP - 5": "ME",
+  "OP - 100": "WELD",
+  "OP - 200": "QC",
+  "OP - 400": "QC",
+  "OP - 500": "TA",
+  "OP - 600": "QC",
+  "OP - 1000": "WELD",
+  "OP - 1300": "QC",
+  "OP - 1500": "WELD",
+  "OP - 1600": "WELD",
+  "OP - 1700": "QC",
+  "OP - 1800": "OSP",
+  "OP - 3000": "WELD",
+  "OP - 3100": "QC",
+  "OP - 3500": "WELD",
+  "OP - 3600": "WELD",
+  "OP - 3700": "QC",
+  "OP - 4000": "OSP",
+  "OP - 4100": "OSP",
+  "OP - 4500": "QC",
+  "OP - 4600": "QC",
+  "OP - 5000": "OSP",
+  "OP - 5100": "OSP",
+  "OP - 5500": "QC",
+  "OP - 5600": "QC",
+  "OP - 5800": "QC",
+  "OP - 6000": "TA",
+  "OP - 6500": "QC",
+  "OP - 6700": "TA",
+  "OP - 6800": "OSP",
+  "OP - 9500": "QC",
+  "OP - 9900": "WHS",
+};
+
+// Generate stages berdasarkan operation
+const getStagesFromOp = (op) => {
+  const dept = opDeptMap[op] || "QC";
+  // Semua department yang mungkin
+  const allDepts = ["ME", "QC", "WELD", "OSP", "WH", "TA", "WHS"];
+  const currentIndex = allDepts.indexOf(dept);
+  
+  return allDepts.map((name, index) => {
+    let status = "pending";
+    if (index < currentIndex) status = "completed";
+    else if (index === currentIndex) status = "active";
+    return { name, status };
+  });
+};
+
 const allWorkOrders = [
   { 
     order: "668", 
     op: "OP - 5", 
     dept: "QC", 
     assign: "Production Team", 
-    status: "RUNNING", 
-    stages: [
-      { name: "ME", status: "completed" },
-      { name: "QC", status: "completed" },
-      { name: "WELD", status: "active" },
-      { name: "OSP", status: "pending" },
-      { name: "WH", status: "pending" },
-    ]
+    status: "RUNNING",
+    stages: getStagesFromOp("OP - 5")
   },
   { 
     order: "669", 
@@ -57,13 +99,7 @@ const allWorkOrders = [
     dept: "ME", 
     assign: "Warehouse Team", 
     status: "AWAITING",
-    stages: [
-      { name: "ME", status: "completed" },
-      { name: "QC", status: "pending" },
-      { name: "WELD", status: "pending" },
-      { name: "OSP", status: "pending" },
-      { name: "WH", status: "pending" },
-    ]
+    stages: getStagesFromOp("OP - 100")
   },
   { 
     order: "670", 
@@ -71,13 +107,7 @@ const allWorkOrders = [
     dept: "WELD", 
     assign: "Quality Team", 
     status: "REVIEW",
-    stages: [
-      { name: "ME", status: "completed" },
-      { name: "QC", status: "completed" },
-      { name: "WELD", status: "completed" },
-      { name: "OSP", status: "pending" },
-      { name: "WH", status: "pending" },
-    ]
+    stages: getStagesFromOp("OP - 500")
   },
   { 
     order: "671", 
@@ -85,13 +115,7 @@ const allWorkOrders = [
     dept: "QC", 
     assign: "Quality Team", 
     status: "RUNNING",
-    stages: [
-      { name: "ME", status: "completed" },
-      { name: "QC", status: "completed" },
-      { name: "WELD", status: "active" },
-      { name: "OSP", status: "pending" },
-      { name: "WH", status: "pending" },
-    ]
+    stages: getStagesFromOp("OP - 75")
   },
   { 
     order: "672", 
@@ -99,13 +123,47 @@ const allWorkOrders = [
     dept: "ME", 
     assign: "Production Team", 
     status: "AWAITING",
-    stages: [
-      { name: "ME", status: "pending" },
-      { name: "QC", status: "pending" },
-      { name: "WELD", status: "pending" },
-      { name: "OSP", status: "pending" },
-      { name: "WH", status: "pending" },
-    ]
+    stages: getStagesFromOp("OP - 200")
+  },
+  { 
+    order: "673", 
+    op: "OP - 1000", 
+    dept: "WELD", 
+    assign: "Weld Team A", 
+    status: "RUNNING",
+    stages: getStagesFromOp("OP - 1000")
+  },
+  { 
+    order: "674", 
+    op: "OP - 1800", 
+    dept: "OSP", 
+    assign: "OSP Team", 
+    status: "REVIEW",
+    stages: getStagesFromOp("OP - 1800")
+  },
+  { 
+    order: "675", 
+    op: "OP - 3000", 
+    dept: "WELD", 
+    assign: "Weld Team B", 
+    status: "RUNNING",
+    stages: getStagesFromOp("OP - 3000")
+  },
+  { 
+    order: "676", 
+    op: "OP - 4100", 
+    dept: "OSP", 
+    assign: "OSP Team", 
+    status: "AWAITING",
+    stages: getStagesFromOp("OP - 4100")
+  },
+  { 
+    order: "677", 
+    op: "OP - 6000", 
+    dept: "TA", 
+    assign: "Test Cell A", 
+    status: "RUNNING",
+    stages: getStagesFromOp("OP - 6000")
   },
 ];
 
@@ -186,12 +244,10 @@ export default function DashboardPage() {
     return allWorkOrders.filter(order => order.status === status).length;
   };
 
-  // Helper function untuk View All
   const handleViewAll = () => {
     setSelectedStatus("ALL");
     setWorkOrders(allWorkOrders);
     setIsFilterOpen(false);
-    // Smooth scroll ke tabel
     document.querySelector(".table-section")?.scrollIntoView({ 
       behavior: "smooth", 
       block: "start" 
@@ -200,7 +256,6 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="brand">
@@ -214,26 +269,10 @@ export default function DashboardPage() {
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </button>
-          <button className="nav-link">
+          <Link to="/work-orders" className="nav-link" style={{ textDecoration: 'none' }}>
             <ClipboardList size={20} />
             <span>Work Order</span>
-          </button>
-          <button className="nav-link">
-            <CheckSquare size={20} />
-            <span>My Task</span>
-          </button>
-          <button className="nav-link">
-            <Activity size={20} />
-            <span>Activity Log</span>
-          </button>
-          <button className="nav-link">
-            <FileText size={20} />
-            <span>Documents</span>
-          </button>
-          <button className="nav-link">
-            <BarChart3 size={20} />
-            <span>Reports</span>
-          </button>
+          </Link>
           <button className="nav-link">
             <Settings size={20} />
             <span>Settings</span>
@@ -246,9 +285,7 @@ export default function DashboardPage() {
         </button>
       </aside>
 
-      {/* Main Content */}
       <main className="main-content">
-        {/* Topbar */}
         <header className="topbar">
           <div className="topbar-left">
             <h1 className="greeting">Good Morning, Aliya</h1>
@@ -279,7 +316,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* Summary Cards */}
         <section className="summary-section">
           {summaryCards.map((card) => (
             <div key={card.title} className="summary-card">
@@ -297,7 +333,6 @@ export default function DashboardPage() {
           ))}
         </section>
 
-        {/* Chart Section - Bar Chart */}
         <section className="chart-section">
           <div className="chart-header">
             <div className="chart-title-group">
@@ -315,7 +350,6 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          {/* Bar Chart */}
           <div className="bar-chart-container">
             <div className="bar-chart">
               <div className="bar-item" style={{ height: '80%' }}>
@@ -357,7 +391,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Table Section */}
         <section className="table-section">
           <div className="table-header">
             <div className="table-title-group">
@@ -365,7 +398,6 @@ export default function DashboardPage() {
               <p className="table-subtitle">Live production tracking</p>
             </div>
             <div className="table-actions">
-              {/* Status Filter Button with Dropdown */}
               <div className="filter-container">
                 <button 
                   className="btn-filter"
@@ -410,13 +442,11 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* View All Button - Updated */}
-              <Link to="/work-orders" className="btn-view-all">
-  <Eye size={16} />
-  <span>View All</span>
-  <ChevronRight size={14} />
-</Link>
-
+              <Link to="/work-orders" className="btn-view-all" style={{ textDecoration: 'none' }}>
+                <Eye size={16} />
+                <span>View All</span>
+                <ChevronRight size={14} />
+              </Link>
             </div>
           </div>
 
@@ -446,7 +476,9 @@ export default function DashboardPage() {
                         <StageTimeline stages={work.stages} />
                       </td>
                       <td>
-                        <Link to={`/work-order/${work.order}`} className="btn-action">OPEN</Link>
+                        <Link to={`/work-order/${work.order}`} className="btn-action" style={{ textDecoration: 'none' }}>
+                          OPEN
+                        </Link>
                       </td>
                     </tr>
                   ))
