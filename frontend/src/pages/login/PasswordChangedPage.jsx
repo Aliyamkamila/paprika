@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { CircleCheckBig } from "lucide-react";
-import AuthLayout from "../components/AuthLayout";
+import AuthLayout from "../../components/AuthLayout";
 
 export default function PasswordChangedPage() {
   return (

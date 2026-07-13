@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Lock, User } from "lucide-react";
-import AuthLayout from "../components/AuthLayout";
+import AuthLayout from "../../components/AuthLayout";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -21,10 +22,9 @@ export default function LoginPage() {
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    // TODO: ganti dengan endpoint login asli backend kamu
-    // await fetch("/api/auth/login", { method: "POST", ... })
-    console.log("LOGIN PAYLOAD:", form);
-    alert("Login API belum dihubungkan.");
+    // TODO: ganti call API login beneran
+    // kalau sukses:
+    navigate("/dashboard");
   };
 
   return (
