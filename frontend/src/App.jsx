@@ -5,6 +5,7 @@ import ResetPinPage from "./pages/login/ResetPinPage";
 import PasswordChangedPage from "./pages/login/PasswordChangedPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import WorkOrderDetailPage from "./pages/workorder/WorkOrderDetailPage";
+import WorkOrdersPage from "./pages/workorder/WorkOrdersPage";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/password-changed" element={<PasswordChangedPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/work-order/:id" element={<WorkOrderDetailPage />} />
+      <Route path="/work-orders" element={<WorkOrdersPage />} />
     </Routes>
   );
 }

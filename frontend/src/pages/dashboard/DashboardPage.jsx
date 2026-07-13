@@ -186,6 +186,18 @@ export default function DashboardPage() {
     return allWorkOrders.filter(order => order.status === status).length;
   };
 
+  // Helper function untuk View All
+  const handleViewAll = () => {
+    setSelectedStatus("ALL");
+    setWorkOrders(allWorkOrders);
+    setIsFilterOpen(false);
+    // Smooth scroll ke tabel
+    document.querySelector(".table-section")?.scrollIntoView({ 
+      behavior: "smooth", 
+      block: "start" 
+    });
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
@@ -398,11 +410,13 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <button className="btn-view-all">
-                <Eye size={16} />
-                <span>View All</span>
-                <ChevronRight size={14} />
-              </button>
+              {/* View All Button - Updated */}
+              <Link to="/work-orders" className="btn-view-all">
+  <Eye size={16} />
+  <span>View All</span>
+  <ChevronRight size={14} />
+</Link>
+
             </div>
           </div>
 
