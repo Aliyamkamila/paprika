@@ -470,7 +470,7 @@ export default function WorkOrderDetailPage() {
               </div>
             </div>
 
-            {/* Current Operation - dengan Work Instructions */}
+            {/* Current Operation - RAPI */}
             <div className="wo-card">
               <div className="wo-card-header">
                 <div className="wo-card-title">
@@ -480,25 +480,27 @@ export default function WorkOrderDetailPage() {
                 <span className="wo-card-badge active">Active</span>
               </div>
               <div className="wo-card-body">
-                <div className="wo-op-grid">
-                  <div className="wo-op-item">
-                    <label>Operation</label>
-                    <p>OP - {wo.operationDetail.operation}</p>
+                {/* Info Operation */}
+                <div className="wo-current-op-grid">
+                  <div className="wo-current-op-item">
+                    <span className="wo-current-op-label">Operation</span>
+                    <span className="wo-current-op-value">OP - {wo.operationDetail.operation}</span>
                   </div>
-                  <div className="wo-op-item">
-                    <label>Department</label>
-                    <p>{wo.operationDetail.department}</p>
+                  <div className="wo-current-op-item">
+                    <span className="wo-current-op-label">Department</span>
+                    <span className="wo-current-op-value">{wo.operationDetail.department}</span>
                   </div>
-                  <div className="wo-op-item full">
-                    <label>Schedule</label>
-                    <p>
-                      <span className="wo-schedule-item">
-                        <CalendarDays size={14} className="inline-icon" />
-                        {wo.operationDetail.scheduled} - {wo.operationDetail.due}
-                      </span>
-                    </p>
+                  <div className="wo-current-op-item full">
+                    <span className="wo-current-op-label">Schedule</span>
+                    <span className="wo-current-op-value">
+                      <CalendarDays size={14} className="inline-icon" />
+                      {wo.operationDetail.scheduled} - {wo.operationDetail.due}
+                    </span>
                   </div>
                 </div>
+
+                {/* Divider */}
+                <div className="wo-divider"></div>
 
                 {/* Work Instructions */}
                 <div className="wo-work-instructions">
