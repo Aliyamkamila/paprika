@@ -27,10 +27,10 @@ import bhLogo from "../../assets/logo.png";
 import { useState } from "react";
 
 const summaryCards = [
-  { title: "New Request", value: 128, icon: <ClipboardCheck size={20} />, color: "#3b82f6" },
-  { title: "In Progress", value: 45, icon: <PlayCircle size={20} />, color: "#f59e0b" },
-  { title: "In Review", value: 18, icon: <CalendarCheck2 size={20} />, color: "#8b5cf6" },
-  { title: "Completed", value: 22, icon: <CheckCircle2 size={20} />, color: "#10b981" },
+  { title: "WO Active", value: 128, icon: <ClipboardCheck size={20} />, color: "#3b82f6" },
+  { title: "Running", value: 45, icon: <PlayCircle size={20} />, color: "#f59e0b" },
+  { title: "Prosses", value: 18, icon: <CalendarCheck2 size={20} />, color: "#8b5cf6" },
+  { title: "Finish", value: 22, icon: <CheckCircle2 size={20} />, color: "#10b981" },
 ];
 
 // Mapping operation ke department
