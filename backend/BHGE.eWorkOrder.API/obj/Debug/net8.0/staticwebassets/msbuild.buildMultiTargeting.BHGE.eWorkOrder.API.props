@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\BHGE.eWorkOrder.API.props" />
+</Project>
