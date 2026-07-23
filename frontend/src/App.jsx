@@ -1,23 +1,57 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import LoginPage from "./pages/login/LoginPage";
-import ForgotPasswordPage from "./pages/login/ForgotPasswordPage";
-import ResetPinPage from "./pages/login/ResetPinPage";
-import PasswordChangedPage from "./pages/login/PasswordChangedPage";
-import DashboardPage from "./pages/dashboard/DashboardPage";
-import WorkOrderDetailPage from "./pages/workorder/WorkOrderDetailPage";
-import WorkOrdersPage from "./pages/workorder/WorkOrdersPage";
+import { useState } from 'react'
+import Sidebar from './components/Sidebar'
+import Topbar from './components/Topbar'
+import Dashboard from './pages/Dashboard'
+import WorkOrderList from './pages/WorkOrderList'
+import WorkOrderDetail from './pages/WorkOrderDetail'
 
-export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-pin" element={<ResetPinPage />} />
-      <Route path="/password-changed" element={<PasswordChangedPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/work-order/:id" element={<WorkOrderDetailPage />} />
-      <Route path="/work-orders" element={<WorkOrdersPage />} />
-    </Routes>
-  );
+const pageTitles = {
+  dashboard  : 'Good morning, Aliya',
+  workorders : 'Work Order',
+  wodetail   : 'Work Order',
+  mytask     : 'My Task',
+  activitylog: 'Activity Log',
+  documents  : 'Documents',
 }
+
+function App() {
+  const [page, setPage]       = useState('dashboard')
+  const [selectedWo, setSelectedWo] = useState(null)
+  const [dashboard, setDashboard] = useState(null)  // ← tambah ini
+
+  const handleSelectWo = (woNumber) => {
+    setSelectedWo(woNumber)
+    setPage('wodetail')
+  }
+
+  const handleBack = () => {
+    setSelectedWo(null)
+    setPage('workorders')
+  }
+
+  const handleNavigate = (key) => {
+    setSelectedWo(null)
+    setPage(key)
+  }
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar activePage={page} onNavigate={handleNavigate} />
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--green-bg)', overflow: 'hidden' }}>
+        <Topbar title={pageTitles[page] ?? ''} />
+
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {page === 'dashboard'   && <Dashboard dashboard={dashboard} setDashboard={setDashboard} />}
+          {page === 'workorders'  && <WorkOrderList onSelect={handleSelectWo} />}
+          {page === 'wodetail'    && <WorkOrderDetail woNumber={selectedWo} onBack={handleBack} />}
+          {page === 'mytask'      && <div style={{ padding: '24px', color: 'var(--green-muted)' }}>Coming soon...</div>}
+          {page === 'activitylog' && <div style={{ padding: '24px', color: 'var(--green-muted)' }}>Coming soon...</div>}
+          {page === 'documents'   && <div style={{ padding: '24px', color: 'var(--green-muted)' }}>Coming soon...</div>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default App
