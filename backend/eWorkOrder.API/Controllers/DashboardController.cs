@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using eWorkOrder.API.Services;
-using eWorkOrder.API.Models.Responses;
 
 namespace eWorkOrder.API.Controllers
 {
@@ -18,12 +17,11 @@ namespace eWorkOrder.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetDashboard()
+        public async Task<IActionResult> GetDashboard()
         {
             try
             {
-                _logger.LogInformation("Fetching dashboard metrics");
-                var metrics = _dashboardService.GetDashboard();
+                var metrics = await _dashboardService.GetDashboardAsync();
                 return Ok(metrics);
             }
             catch (Exception ex)

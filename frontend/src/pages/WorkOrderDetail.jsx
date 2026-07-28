@@ -1,259 +1,612 @@
-import { useState, useEffect } from 'react'
-import { getWorkOrderDetail } from '../services/api'
+import React, { useState, useEffect } from 'react';
+import { getWorkOrderDetail } from '../services/api';
+import OperationNoteModal from '../components/OperationNoteModal';
+import OperationDetailModal from '../components/OperationDetailModal';
 
 const statusColor = (s) => {
   const map = {
-    'Released'    : 'warning',
-    'Closed'      : 'success',
-    'Failed Close': 'danger',
-    'Completed'   : 'info',
-    'COMPLETED'   : 'success',
-    'NOT STARTED' : 'secondary',
-    'IN PROGRESS' : 'warning',
-  }
-  return map[s] ?? 'secondary'
-}
+    'Released'     : '#F4A261',
+    'Closed'       : '#02BC94',
+    'Failed Close' : '#E74C3C',
+    'Completed'    : '#02BC94',
+    'COMPLETED'    : '#02BC94',
+    'NOT STARTED'  : '#8AAB99',
+    'IN PROGRESS'  : '#F4A261',
+  };
+  return map[s] ?? '#8AAB99';
+};
 
 const statusIcon = (s) => {
-  const up = s?.toUpperCase()
-  if (up === 'COMPLETED')   return '✅'
-  if (up === 'IN PROGRESS') return '🔄'
-  if (up === 'NOT STARTED') return '⭕'
-  return '❓'
-}
+  const up = s?.toUpperCase();
+  if (up === 'COMPLETED')   return '✓';
+  if (up === 'IN PROGRESS') return '⟳';
+  if (up === 'NOT STARTED') return '○';
+  return '?';
+};
 
 const WorkOrderDetail = ({ woNumber, onBack }) => {
-  const [detail, setDetail]   = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState('')
-  const [remark, setRemark]   = useState('')
-  const [savedRemarks, setSavedRemarks] = useState([])
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [notes, setNotes] = useState({});
+  const [selectedOp, setSelectedOp] = useState(null);
+  const [selectedOpDetail, setSelectedOpDetail] = useState(null);
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        setLoading(true)
-        const data = await getWorkOrderDetail(woNumber)
-        setDetail(data)
+        setLoading(true);
+        const data = await getWorkOrderDetail(woNumber);
+        setDetail(data);
       } catch (err) {
-        setError('Gagal memuat data WO.')
-        console.error(err)
+        setError('Gagal memuat data WO.');
+        console.error(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchDetail()
-  }, [woNumber])
+    };
+    fetchDetail();
+  }, [woNumber]);
 
-  const handleSaveRemark = () => {
-    if (!remark.trim()) return
-    setSavedRemarks(prev => [...prev, {
-      text: remark.trim(),
-      time: new Date().toLocaleString('en-GB'),
-      author: 'You'
-    }])
-    setRemark('')
-  }
+  const handleSaveNote = (note) => {
+    setNotes(prev => ({
+      ...prev,
+      [note.operationNum]: [...(prev[note.operationNum] ?? []), note]
+    }));
+  };
 
   if (loading) return (
-    <div className="text-center py-5">
-      <span className="spinner-border text-primary" />
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '400px',
+    }}>
+      <div style={{
+        width: '40px',
+        height: '40px',
+        border: '3px solid rgba(2,188,148,0.10)',
+        borderTop: '3px solid #02BC94',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite',
+      }} />
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
-  )
+  );
 
   if (error) return (
-    <div className="container py-4">
-      <div className="alert alert-danger">{error}</div>
-      <button className="btn btn-secondary" onClick={onBack}>← Back</button>
+    <div style={{ padding: '24px' }}>
+      <div style={{
+        padding: '16px 20px',
+        background: 'rgba(231,76,60,0.06)',
+        borderRadius: '10px',
+        border: '1px solid rgba(231,76,60,0.12)',
+        color: '#E74C3C',
+        marginBottom: '16px',
+      }}>
+        {error}
+      </div>
+      <button
+        onClick={onBack}
+        style={{
+          padding: '8px 20px',
+          background: 'transparent',
+          border: '1px solid rgba(5,50,43,0.15)',
+          borderRadius: '8px',
+          color: '#05322B',
+          cursor: 'pointer',
+          fontSize: '13px',
+        }}
+      >
+        ← Back
+      </button>
     </div>
-  )
+  );
 
-  if (!detail) return null
+  if (!detail) return null;
 
-  // Progress calculation
-  const totalOps     = detail.operations.length
-  const completedOps = detail.operations.filter(o => o.status?.toUpperCase() === 'COMPLETED').length
-  const inProgressOps= detail.operations.filter(o => o.status?.toUpperCase() === 'IN PROGRESS').length
-  const progressPct  = totalOps > 0 ? Math.round((completedOps / totalOps) * 100) : 0
+  const totalOps = detail.operations.length;
+  const completedOps = detail.operations.filter(o => o.status?.toUpperCase() === 'COMPLETED').length;
+  const inProgressOps = detail.operations.filter(o => o.status?.toUpperCase() === 'IN PROGRESS').length;
+  const progressPct = totalOps > 0 ? Math.round((completedOps / totalOps) * 100) : 0;
 
-  // Current operation = first non-completed, or last if all done
   const currentOp = detail.operations.find(o => o.status?.toUpperCase() !== 'COMPLETED')
-    ?? detail.operations[detail.operations.length - 1]
+    ?? detail.operations[detail.operations.length - 1];
 
   return (
-    <div className="container-fluid py-4 px-4">
-
-      {/* Back */}
-      <button className="btn btn-outline-secondary btn-sm mb-3" onClick={onBack}>
-        ← Back to List
+    <div style={{
+      padding: '24px 28px',
+      background: 'rgba(5,50,43,0.02)',
+      minHeight: '100%',
+    }}>
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '8px 16px',
+          background: 'transparent',
+          border: '1px solid rgba(5,50,43,0.10)',
+          borderRadius: '8px',
+          color: '#05322B',
+          cursor: 'pointer',
+          fontSize: '13px',
+          fontWeight: '500',
+          marginBottom: '20px',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(5,50,43,0.04)';
+          e.currentTarget.style.borderColor = 'rgba(5,50,43,0.20)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.borderColor = 'rgba(5,50,43,0.10)';
+        }}
+      >
+        <i className="ti ti-arrow-left" style={{ fontSize: '16px' }} aria-hidden="true" />
+        Back to List
       </button>
 
       {/* Header Card */}
-      <div className="card mb-4">
-        <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-          <h5 className="mb-0">📄 {detail.woNumber}</h5>
-          <span className={`badge bg-${statusColor(detail.woStatus)} fs-6`}>
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '14px',
+        border: '1px solid rgba(2,188,148,0.08)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        marginBottom: '20px',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: '16px 24px',
+          background: 'linear-gradient(135deg, #05322B, #0A4A3E)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              background: 'rgba(2,188,148,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <i className="ti ti-file-description" style={{ fontSize: '20px', color: '#02BC94' }} aria-hidden="true" />
+            </div>
+            <div>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: '600',
+                color: '#FFFFFF',
+                letterSpacing: '-0.2px',
+              }}>
+                {detail.woNumber}
+              </div>
+              <div style={{
+                fontSize: '12px',
+                color: 'rgba(255,255,255,0.6)',
+              }}>
+                {detail.description}
+              </div>
+            </div>
+          </div>
+          <div style={{
+            padding: '4px 14px',
+            borderRadius: '20px',
+            background: detail.woStatus?.toUpperCase() === 'CLOSED' || detail.woStatus?.toUpperCase() === 'COMPLETED' 
+              ? 'rgba(2,188,148,0.15)' 
+              : 'rgba(244,162,97,0.15)',
+            border: `1px solid ${statusColor(detail.woStatus)}44`,
+            color: statusColor(detail.woStatus),
+            fontSize: '13px',
+            fontWeight: '500',
+          }}>
             {detail.woStatus}
-          </span>
+          </div>
         </div>
-        <div className="card-body">
-          <p className="text-muted mb-3">{detail.description}</p>
 
-          <div className="row g-3 mb-4">
-            <div className="col-6 col-md-2">
-              <div className="fw-semibold text-muted small">Quantity</div>
-              <div className="fs-5 fw-bold">{detail.quantity}</div>
-            </div>
-            <div className="col-6 col-md-2">
-              <div className="fw-semibold text-muted small">Department</div>
-              <div className="fs-5 fw-bold">{detail.department}</div>
-            </div>
-            <div className="col-6 col-md-2">
-              <div className="fw-semibold text-muted small">Planner</div>
-              <div className="fs-5 fw-bold">{detail.plannerCode}</div>
-            </div>
-            <div className="col-6 col-md-2">
-              <div className="fw-semibold text-muted small">Start Date</div>
-              <div className="fs-5 fw-bold">{detail.woStartDate ?? '-'}</div>
-            </div>
-            <div className="col-6 col-md-2">
-              <div className="fw-semibold text-muted small">End Date</div>
-              <div className="fs-5 fw-bold">{detail.woEndDate ?? '-'}</div>
-            </div>
-            <div className="col-6 col-md-2">
-              <div className="fw-semibold text-muted small">Current Operation</div>
-              <div className="fw-bold text-primary">{currentOp?.operationNum} — {currentOp?.description?.split(' - ')[1] ?? currentOp?.description}</div>
-            </div>
+        {/* Body */}
+        <div style={{ padding: '20px 24px 24px' }}>
+          {/* Info Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, 1fr)',
+            gap: '16px',
+            marginBottom: '20px',
+          }}>
+            {[
+              { label: 'Quantity', value: detail.quantity },
+              { label: 'Department', value: detail.department },
+              { label: 'Planner', value: detail.plannerCode },
+              { label: 'Start Date', value: detail.woStartDate ?? '-' },
+              { label: 'End Date', value: detail.woEndDate ?? '-' },
+              { label: 'Current Op', value: `${currentOp?.operationNum} — ${currentOp?.description?.split(' - ')[1] ?? currentOp?.description}` },
+            ].map((item, i) => (
+              <div key={i}>
+                <div style={{
+                  fontSize: '10px',
+                  color: 'rgba(5,50,43,0.35)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  fontWeight: '500',
+                  marginBottom: '2px',
+                }}>
+                  {item.label}
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#05322B',
+                }}>
+                  {item.value}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Progress Bar */}
           <div>
-            <div className="d-flex justify-content-between mb-1">
-              <span className="fw-semibold small">Operation Progress</span>
-              <span className="small text-muted">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '6px',
+            }}>
+              <span style={{
+                fontSize: '12px',
+                fontWeight: '500',
+                color: '#05322B',
+              }}>
+                Operation Progress
+              </span>
+              <span style={{
+                fontSize: '12px',
+                color: 'rgba(5,50,43,0.5)',
+              }}>
                 {completedOps} / {totalOps} Completed
                 {inProgressOps > 0 && ` · ${inProgressOps} In Progress`}
-                {' '}— <strong>{progressPct}%</strong>
+                {' — '}
+                <strong style={{ color: '#02BC94' }}>{progressPct}%</strong>
               </span>
             </div>
-            <div className="progress" style={{ height: '18px' }}>
-              <div
-                className={`progress-bar bg-${progressPct === 100 ? 'success' : 'primary'}`}
-                style={{ width: `${progressPct}%`, transition: 'width 0.5s' }}
-              >
-                {progressPct > 10 && `${progressPct}%`}
-              </div>
+            <div style={{
+              height: '8px',
+              background: 'rgba(5,50,43,0.05)',
+              borderRadius: '4px',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${progressPct}%`,
+                background: progressPct === 100 
+                  ? 'linear-gradient(90deg, #02BC94, #018374)'
+                  : 'linear-gradient(90deg, #02BC94, #6FCF97)',
+                borderRadius: '4px',
+                transition: 'width 0.6s ease',
+              }} />
             </div>
           </div>
         </div>
       </div>
 
       {/* Operation Timeline */}
-      <div className="card mb-4">
-        <div className="card-header bg-dark text-white">
-          <h6 className="mb-0">🔧 Operation Timeline</h6>
-        </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th>Op #</th>
-                  <th>Description</th>
-                  <th className="text-center">Status</th>
-                  <th className="text-center">Dept</th>
-                  <th className="text-center">Machine</th>
-                  <th>Employee</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detail.operations.map((op, i) => (
-                  <tr
-                    key={i}
-                    className={op.status?.toUpperCase() === 'IN PROGRESS' ? 'table-warning' : ''}
-                  >
-                    <td><strong>{op.operationNum}</strong></td>
-                    <td>{op.description}</td>
-                    <td className="text-center">
-                      {statusIcon(op.status)}{' '}
-                      <span className={`badge bg-${statusColor(op.status)}`}>
-                        {op.status}
-                      </span>
-                    </td>
-                    <td className="text-center">{op.department}</td>
-                    <td className="text-center">{op.machine}</td>
-                    <td>{op.employeeName}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="table-light fw-bold">
-                <tr>
-                  <td colSpan={6} className="text-center text-muted" style={{ fontSize: '12px' }}>
-                    {detail.operations.length} operations
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Remark */}
-      <div className="card mb-4">
-        <div className="card-header bg-dark text-white">
-          <h6 className="mb-0">💬 Remark</h6>
-        </div>
-        <div className="card-body">
-          {savedRemarks.length === 0 && (
-            <p className="text-muted small">Belum ada remark.</p>
-          )}
-          {savedRemarks.map((r, i) => (
-            <div key={i} className="border rounded p-2 mb-2 bg-light">
-              <div className="d-flex justify-content-between mb-1">
-                <strong className="small">{r.author}</strong>
-                <small className="text-muted">{r.time}</small>
-              </div>
-              <div>{r.text}</div>
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '14px',
+        border: '1px solid rgba(2,188,148,0.06)',
+        overflow: 'hidden',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        marginBottom: '20px',
+      }}>
+        <div style={{
+          padding: '14px 24px',
+          borderBottom: '1px solid rgba(5,50,43,0.04)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div>
+            <div style={{
+              fontSize: '13px',
+              fontWeight: '500',
+              color: '#05322B',
+            }}>
+              Operation Timeline
             </div>
-          ))}
-          <div className="mt-3">
-            <textarea
-              className="form-control mb-2"
-              rows={3}
-              placeholder="Tulis remark di sini..."
-              value={remark}
-              onChange={e => setRemark(e.target.value)}
-            />
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={handleSaveRemark}
-              disabled={!remark.trim()}
-            >
-              💾 Save Remark
-            </button>
+            <div style={{
+              fontSize: '11px',
+              color: 'rgba(5,50,43,0.3)',
+              marginTop: '2px',
+            }}>
+              Klik operation untuk tambah note
+            </div>
           </div>
+          <span style={{
+            fontSize: '11px',
+            color: 'rgba(5,50,43,0.3)',
+          }}>
+            {detail.operations.length} operations
+          </span>
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: '13px',
+          }}>
+            <thead>
+              <tr style={{
+                borderBottom: '1px solid rgba(5,50,43,0.06)',
+                background: 'rgba(5,50,43,0.02)',
+              }}>
+                {['Op #', 'Description', 'Status', 'Dept', 'Employee'].map((h, i) => (
+                  <th key={i} style={{
+                    textAlign: i === 0 ? 'left' : 'center',
+                    padding: '10px 16px',
+                    fontSize: '11px',
+                    fontWeight: '500',
+                    color: 'rgba(5,50,43,0.4)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {detail.operations.map((op, i) => {
+                const opNotes = notes[op.operationNum] ?? [];
+                const isInProgress = op.status?.toUpperCase() === 'IN PROGRESS';
+                const isLast = i === detail.operations.length - 1;
+
+                return (
+                  <React.Fragment key={i}>
+                    <tr
+                      onClick={() => {
+                        setSelectedOp(op);
+                      }}
+                      style={{
+                        borderBottom: opNotes.length === 0 && !isLast ? '1px solid rgba(5,50,43,0.04)' : 'none',
+                        background: isInProgress ? 'rgba(244,162,97,0.04)' : 'transparent',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = isInProgress ? 'rgba(244,162,97,0.08)' : 'rgba(2,188,148,0.03)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = isInProgress ? 'rgba(244,162,97,0.04)' : 'transparent';
+                      }}
+                      onDoubleClick={() => {
+                        setSelectedOpDetail(op.operationNum);
+                      }}
+                    >
+                      <td style={{
+                        padding: '11px 16px',
+                        fontWeight: '600',
+                        color: '#05322B',
+                      }}>
+                        {op.operationNum}
+                      </td>
+                      <td style={{
+                        padding: '11px 16px',
+                        color: '#6B7280',
+                        fontSize: '12px',
+                      }}>
+                        {op.description}
+                      </td>
+                      <td style={{
+                        padding: '11px 16px',
+                        textAlign: 'center',
+                      }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2px 10px',
+                          borderRadius: '12px',
+                          background: `${statusColor(op.status)}15`,
+                          color: statusColor(op.status),
+                          fontSize: '11px',
+                          fontWeight: '500',
+                        }}>
+                          {statusIcon(op.status)} {op.status}
+                        </span>
+                      </td>
+                      <td style={{
+                        padding: '11px 16px',
+                        textAlign: 'center',
+                        color: '#05322B',
+                        fontWeight: '500',
+                        fontSize: '12px',
+                      }}>
+                        {op.department}
+                      </td>
+                      <td style={{
+                        padding: '11px 16px',
+                        textAlign: 'center',
+                        color: '#6B7280',
+                        fontSize: '12px',
+                      }}>
+                        {op.employeeName}
+                      </td>
+                    </tr>
+
+                    {/* Notes */}
+                    {opNotes.length > 0 && (
+                      <tr>
+                        <td colSpan={5} style={{
+                          padding: '8px 16px 12px 80px',
+                          borderBottom: !isLast ? '1px solid rgba(5,50,43,0.04)' : 'none',
+                          background: 'rgba(5,50,43,0.015)',
+                        }}>
+                          {opNotes.map((n, j) => (
+                            <div key={j} style={{
+                              background: '#FFFFFF',
+                              border: '1px solid rgba(2,188,148,0.08)',
+                              borderRadius: '8px',
+                              padding: '10px 14px',
+                              marginBottom: j < opNotes.length - 1 ? '8px' : 0,
+                            }}>
+                              <div style={{
+                                fontSize: '13px',
+                                color: '#05322B',
+                                marginBottom: '6px',
+                                lineHeight: '1.5',
+                              }}>
+                                {n.text}
+                              </div>
+                              <div style={{
+                                display: 'flex',
+                                gap: '8px',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                              }}>
+                                <span style={{
+                                  fontSize: '10px',
+                                  padding: '2px 8px',
+                                  borderRadius: '12px',
+                                  background: 'rgba(2,188,148,0.10)',
+                                  color: '#018374',
+                                  fontWeight: '500',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.3px',
+                                }}>
+                                  {n.department}
+                                </span>
+                                <span style={{
+                                  fontSize: '11px',
+                                  color: '#6B7280',
+                                }}>
+                                  {n.author}
+                                </span>
+                                <span style={{
+                                  fontSize: '11px',
+                                  color: 'rgba(5,50,43,0.3)',
+                                }}>
+                                  · {n.timestamp}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Documents */}
-      <div className="card mb-4">
-        <div className="card-header bg-dark text-white">
-          <h6 className="mb-0">📎 Documents</h6>
+      <div style={{
+        background: '#FFFFFF',
+        borderRadius: '14px',
+        border: '1px solid rgba(2,188,148,0.06)',
+        padding: '16px 24px 20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+      }}>
+        <div style={{
+          fontSize: '13px',
+          fontWeight: '500',
+          color: '#05322B',
+          marginBottom: '12px',
+        }}>
+          Documents
         </div>
-        <div className="card-body">
-          <div className="d-flex gap-2 flex-wrap">
-            {['Drawing.pdf', 'Inspection Report.pdf', 'Material Cert.pdf'].map((doc, i) => (
-              <button key={i} className="btn btn-outline-secondary btn-sm">
-                📄 {doc}
-              </button>
-            ))}
-          </div>
-          <small className="text-muted mt-2 d-block">* Documents coming soon</small>
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+        }}>
+          {['Drawing.pdf', 'Inspection Report.pdf', 'Material Cert.pdf'].map((doc, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 14px 6px 10px',
+              background: 'rgba(5,50,43,0.02)',
+              border: '1px solid rgba(5,50,43,0.06)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(2,188,148,0.04)';
+              e.currentTarget.style.borderColor = 'rgba(2,188,148,0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(5,50,43,0.02)';
+              e.currentTarget.style.borderColor = 'rgba(5,50,43,0.06)';
+            }}
+            >
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                background: 'rgba(2,188,148,0.10)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <i className="ti ti-file" style={{ fontSize: '14px', color: '#02BC94' }} aria-hidden="true" />
+              </div>
+              <span style={{
+                fontSize: '12px',
+                color: '#05322B',
+              }}>
+                {doc}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div style={{
+          fontSize: '11px',
+          color: 'rgba(5,50,43,0.3)',
+          marginTop: '10px',
+        }}>
+          * Documents coming soon
         </div>
       </div>
 
-    </div>
-  )
-}
+      {/* Modal untuk Add Note */}
+      {selectedOp && (
+        <OperationNoteModal
+          operation={selectedOp}
+          onClose={() => setSelectedOp(null)}
+          onSave={handleSaveNote}
+        />
+      )}
 
-export default WorkOrderDetail
+      {/* Modal untuk Operation Detail */}
+      {selectedOpDetail && (
+        <OperationDetailModal
+          woNumber={detail.woNumber}
+          operationNum={selectedOpDetail}
+          onClose={() => setSelectedOpDetail(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default WorkOrderDetail;

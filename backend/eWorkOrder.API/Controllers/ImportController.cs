@@ -9,12 +9,17 @@ namespace eWorkOrder.API.Controllers
     public class ImportController : ControllerBase
     {
         private readonly ExcelReaderService _excelReaderService;
+        private readonly ImportDbService    _importDbService;
         private readonly ILogger<ImportController> _logger;
 
-        public ImportController(ExcelReaderService excelReaderService, ILogger<ImportController> logger)
+        public ImportController(
+            ExcelReaderService excelReaderService,
+            ImportDbService importDbService,
+            ILogger<ImportController> logger)
         {
             _excelReaderService = excelReaderService;
-            _logger = logger;
+            _importDbService    = importDbService;
+            _logger             = logger;
         }
 
         [HttpPost]
@@ -27,7 +32,7 @@ namespace eWorkOrder.API.Controllers
                 {
                     Success = false,
                     Message = "File tidak ditemukan.",
-                    Errors = new List<string> { "Upload file Excel dulu." }
+                    Errors  = new List<string> { "Upload file Excel dulu." }
                 });
 
             if (!file.FileName.EndsWith(".xlsx") && !file.FileName.EndsWith(".xls"))
@@ -35,11 +40,12 @@ namespace eWorkOrder.API.Controllers
                 {
                     Success = false,
                     Message = "Format file tidak valid.",
-                    Errors = new List<string> { "Hanya .xlsx atau .xls yang diterima." }
+                    Errors  = new List<string> { "Hanya .xlsx atau .xls yang diterima." }
                 });
 
             _logger.LogInformation("Import: {FileName}", file.FileName);
 
+            // Step 1 — Parse Excel (tetap simpan ke memori untuk dashboard)
             var (success, totalRows, errors) = await _excelReaderService.ImportAsync(file);
 
             if (!success)
@@ -48,8 +54,12 @@ namespace eWorkOrder.API.Controllers
                     Success = false,
                     Message = "Gagal membaca file.",
                     TotalRows = totalRows,
-                    Errors = errors
+                    Errors  = errors
                 });
+
+            // Step 2 — Simpan ke DB
+            var rawRows  = _excelReaderService.GetRawRows();
+            var (inserted, updated) = await _importDbService.SaveToDbAsync(rawRows);
 
             var validRows = _excelReaderService.GetImportedRows();
 
@@ -59,7 +69,7 @@ namespace eWorkOrder.API.Controllers
                 TotalRows   = totalRows,
                 ValidRows   = validRows,
                 InvalidRows = Math.Max(0, totalRows - validRows),
-                Message     = $"Import berhasil! {validRows} data siap diproses.",
+                Message     = $"Import berhasil! {validRows} data, {inserted} WO baru, {updated} WO diupdate.",
                 Errors      = errors
             });
         }

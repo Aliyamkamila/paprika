@@ -23,3 +23,8 @@ export const getWorkOrderDetail = async (woNumber) => {
   const res = await axios.get(`${BASE_URL}/workorder/${encodeURIComponent(woNumber)}`)
   return res.data
 }
+
+export const getOperationDetail = async (woNumber, operationNum) => {
+  const res = await axios.get(`${BASE_URL}/workorder/${encodeURIComponent(woNumber)}/operations/${encodeURIComponent(operationNum)}`)
+  return res.data
+}

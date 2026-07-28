@@ -1,70 +1,56 @@
+using eWorkOrder.API.Data.Repositories;
 using eWorkOrder.API.Helpers;
-using eWorkOrder.API.Models.Domain;
 using eWorkOrder.API.Models.Responses;
 
 namespace eWorkOrder.API.Services
 {
     public class WorkOrderService
     {
-        private readonly ExcelReaderService _reader;
+        private readonly WorkOrderRepository _repo;
 
-        public WorkOrderService(ExcelReaderService reader)
+        public WorkOrderService(WorkOrderRepository repo)
         {
-            _reader = reader;
+            _repo = repo;
         }
 
-        public WorkOrderListResponseDto GetWorkOrders(
+        public async Task<WorkOrderListResponseDto> GetWorkOrdersAsync(
             string? search, string? status, string? department,
             int page, int pageSize)
         {
-            var workOrders = _reader.GetWorkOrders().Values.AsQueryable();
+            var (total, data) = await _repo.GetWorkOrdersAsync(search, status, department, page, pageSize);
 
-            if (!string.IsNullOrEmpty(search))
-                workOrders = workOrders.Where(w =>
-                    (w.WoNumber    != null && w.WoNumber.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
-                    (w.Description != null && w.Description.Contains(search, StringComparison.OrdinalIgnoreCase)));
+            var totalPages = (int)Math.Ceiling((double)total / pageSize);
 
-            if (!string.IsNullOrEmpty(status))
-                workOrders = workOrders.Where(w =>
-                    w.WoStatus != null && w.WoStatus.Trim().ToUpper() == status.Trim().ToUpper());
-
-            if (!string.IsNullOrEmpty(department))
-                workOrders = workOrders.Where(w =>
-                    w.PrimaryDepartment != null && w.PrimaryDepartment.ToUpper() == department.Trim().ToUpper());
-
-            var totalData  = workOrders.Count();
-            var totalPages = (int)Math.Ceiling((double)totalData / pageSize);
-
-            var paged = workOrders
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(w => new WorkOrderSummaryDto
+            return new WorkOrderListResponseDto
+            {
+                TotalData  = total,
+                Page       = page,
+                PageSize   = pageSize,
+                TotalPages = totalPages,
+                Data       = data.Select(w => new WorkOrderSummaryDto
                 {
                     WoNumber         = w.WoNumber,
                     Description      = w.Description,
                     Quantity         = w.Quantity,
                     WoStatus         = w.WoStatus,
                     PlannerCode      = w.PlannerCode,
-                    CurrentOperation = w.CurrentOperation,
-                    Department       = w.PrimaryDepartment,
-                    OperationCount   = w.TotalOperations
-                })
-                .ToList();
-
-            return new WorkOrderListResponseDto
-            {
-                TotalData  = totalData,
-                Page       = page,
-                PageSize   = pageSize,
-                TotalPages = totalPages,
-                Data       = paged
+                    Department       = w.Operations
+                                        .GroupBy(o => o.DepartmentCode)
+                                        .OrderByDescending(g => g.Count())
+                                        .FirstOrDefault()?.Key,
+                    CurrentOperation = w.Operations
+                                        .OrderBy(o => o.OperationNum)
+                                        .FirstOrDefault(o => o.OpStatus != "COMPLETED")?.OperationNum
+                                        ?? w.Operations.LastOrDefault()?.OperationNum,
+                    OperationCount   = w.Operations.Count,
+                }).ToList()
             };
         }
 
-        public WorkOrderDetailDto? GetDetail(string woNumber)
+        public async Task<WorkOrderDetailDto?> GetDetailAsync(string woNumber)
         {
-            var workOrders = _reader.GetWorkOrders();
-            if (!workOrders.TryGetValue(woNumber.Trim(), out var wo)) return null;
+            var wo = await _repo.GetWorkOrderDetailAsync(woNumber);
+            if (wo == null) return null;
 
             return new WorkOrderDetailDto
             {
@@ -73,30 +59,39 @@ namespace eWorkOrder.API.Services
                 Quantity    = wo.Quantity,
                 WoStatus    = wo.WoStatus,
                 PlannerCode = wo.PlannerCode,
-                Department  = wo.PrimaryDepartment,
-                WoStartDate = wo.StartDate?.ToString("dd/MM/yyyy"),
-                WoEndDate   = wo.EndDate?.ToString("dd/MM/yyyy"),
+                Department  = wo.Operations
+                                .GroupBy(o => o.DepartmentCode)
+                                .OrderByDescending(g => g.Count())
+                                .FirstOrDefault()?.Key,
+                WoStartDate = wo.ScheduledStart?.ToString("dd/MM/yyyy"),
+                WoEndDate   = wo.ScheduledFinish?.ToString("dd/MM/yyyy"),
                 Operations  = wo.Operations
-                    .GroupBy(o => o.OperationNum)
-                    .OrderBy(g => { int.TryParse(g.Key, out var n); return n; })
-                    .Select(g => {
-                        var latest = g.OrderByDescending(o => o.ClockOut).First();
-                        return new OperationTimelineDto
-                        {
-                            OperationNum = g.Key,
-                            Description  = latest.Description,
-                            Status       = latest.Status,
-                            Department   = latest.DepartmentCode,
-                            Machine      = latest.MachineCode,
-                            EmployeeName = latest.EmployeeName,
-                            StdHours     = g.Sum(o => o.StdHours),
-                            ActHours     = g.Sum(o => o.ActHours),
-                            ClockIn      = latest.ClockIn?.ToString("dd/MM/yyyy HH:mm"),
-                            ClockOut     = latest.ClockOut?.ToString("dd/MM/yyyy HH:mm"),
-                        };
+                    .OrderBy(o => {
+                        int.TryParse(o.OperationNum, out var n);
+                        return n;
+                    })
+                    .Select(o => new OperationTimelineDto
+                    {
+                        OperationNum = o.OperationNum,
+                        Description  = o.Description,
+                        Status       = o.OpStatus,
+                        Department   = o.DepartmentCode,
+                        Machine      = o.MachineCode,
+                        EmployeeName = o.Employees
+                                        .OrderByDescending(e => e.ClockOut)
+                                        .FirstOrDefault()?.EmployeeName,
+                        StdHours     = o.Employees.Sum(e => e.StdHours ?? 0),
+                        ActHours     = o.Employees.Sum(e => e.ActHours ?? 0),
+                        ClockIn      = o.Employees.Min(e => e.ClockIn)?.ToString("dd/MM/yyyy HH:mm"),
+                        ClockOut     = o.Employees.Max(e => e.ClockOut)?.ToString("dd/MM/yyyy HH:mm"),
                     })
                     .ToList()
             };
+        }
+
+        public async Task<OperationDetailDto?> GetOperationDetailAsync(string woNumber, string operationNum)
+        {
+            return await _repo.GetOperationDetailAsync(woNumber, operationNum);
         }
     }
 }

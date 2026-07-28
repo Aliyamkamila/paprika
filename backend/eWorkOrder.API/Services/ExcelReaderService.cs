@@ -8,8 +8,9 @@ namespace eWorkOrder.API.Services
     public class ExcelReaderService
     {
         private Dictionary<string, WorkOrder> _workOrders = new();
-        private DashboardSummary?             _summary;
-        private int                           _importedRows;
+        private List<ExcelRowDto> _rawRows = new();  // <-- Tambahkan ini
+        private DashboardSummary? _summary;
+        private int _importedRows;
 
         private readonly ILogger<ExcelReaderService> _logger;
 
@@ -31,7 +32,7 @@ namespace eWorkOrder.API.Services
                 await file.CopyToAsync(stream);
                 stream.Position = 0;
 
-                using var package  = new ExcelPackage(stream);
+                using var package = new ExcelPackage(stream);
                 var worksheet = package.Workbook.Worksheets[Constants.ExcelSheetName];
 
                 if (worksheet == null)
@@ -58,22 +59,22 @@ namespace eWorkOrder.API.Services
 
                         rawRows.Add(new ExcelRowDto
                         {
-                            WoNumber       = woNumber,
-                            Description    = worksheet.Cells[row, ExcelColumns.Description].Value?.ToString(),
-                            Quantity       = ToInt(worksheet.Cells[row, ExcelColumns.Quantity].Value),
-                            WoStatus       = worksheet.Cells[row, ExcelColumns.WoStatus].Value?.ToString(),
-                            OperationNum   = worksheet.Cells[row, ExcelColumns.OperationNum].Value?.ToString(),
-                            OpDescription  = worksheet.Cells[row, ExcelColumns.OpDescription].Value?.ToString(),
-                            OpStatus       = worksheet.Cells[row, ExcelColumns.OpStatus].Value?.ToString(),
+                            WoNumber = woNumber,
+                            Description = worksheet.Cells[row, ExcelColumns.Description].Value?.ToString(),
+                            Quantity = ToInt(worksheet.Cells[row, ExcelColumns.Quantity].Value),
+                            WoStatus = worksheet.Cells[row, ExcelColumns.WoStatus].Value?.ToString(),
+                            OperationNum = worksheet.Cells[row, ExcelColumns.OperationNum].Value?.ToString(),
+                            OpDescription = worksheet.Cells[row, ExcelColumns.OpDescription].Value?.ToString(),
+                            OpStatus = worksheet.Cells[row, ExcelColumns.OpStatus].Value?.ToString(),
                             DepartmentCode = worksheet.Cells[row, ExcelColumns.DepartmentCode].Value?.ToString(),
-                            MachineCode    = worksheet.Cells[row, ExcelColumns.MachineCode].Value?.ToString(),
-                            ResourceCode   = worksheet.Cells[row, ExcelColumns.ResourceCode].Value?.ToString(),
-                            EmployeeId     = worksheet.Cells[row, ExcelColumns.EmployeeId].Value?.ToString(),
-                            EmployeeName   = worksheet.Cells[row, ExcelColumns.EmployeeName].Value?.ToString(),
-                            StdHours       = ToDecimal(worksheet.Cells[row, ExcelColumns.StdHours].Value),
-                            ActHours       = ToDecimal(worksheet.Cells[row, ExcelColumns.ActHours].Value),
-                            ClockIn        = ToDateTime(worksheet.Cells[row, ExcelColumns.ClockIn].Value),
-                            ClockOut       = ToDateTime(worksheet.Cells[row, ExcelColumns.ClockOut].Value),
+                            MachineCode = worksheet.Cells[row, ExcelColumns.MachineCode].Value?.ToString(),
+                            ResourceCode = worksheet.Cells[row, ExcelColumns.ResourceCode].Value?.ToString(),
+                            EmployeeId = worksheet.Cells[row, ExcelColumns.EmployeeId].Value?.ToString(),
+                            EmployeeName = worksheet.Cells[row, ExcelColumns.EmployeeName].Value?.ToString(),
+                            StdHours = ToDecimal(worksheet.Cells[row, ExcelColumns.StdHours].Value),
+                            ActHours = ToDecimal(worksheet.Cells[row, ExcelColumns.ActHours].Value),
+                            ClockIn = ToDateTime(worksheet.Cells[row, ExcelColumns.ClockIn].Value),
+                            ClockOut = ToDateTime(worksheet.Cells[row, ExcelColumns.ClockOut].Value),
                         });
                     }
                     catch (Exception ex)
@@ -83,8 +84,9 @@ namespace eWorkOrder.API.Services
                 }
 
                 // Step 2 — Map to domain models
-                _workOrders   = WorkOrderMapper.MapToWorkOrders(rawRows);
+                _workOrders = WorkOrderMapper.MapToWorkOrders(rawRows);
                 _importedRows = rawRows.Count;
+                _rawRows = rawRows;  // <-- Tambahkan ini untuk menyimpan raw rows
 
                 // Step 3 — Build summary once
                 _summary = WorkOrderMapper.BuildSummary(_workOrders, _importedRows);
@@ -103,12 +105,17 @@ namespace eWorkOrder.API.Services
             }
         }
 
+        // Existing methods
         public Dictionary<string, WorkOrder> GetWorkOrders() => _workOrders;
-        public DashboardSummary?             GetSummary()    => _summary;
-        public int                           GetImportedRows()=> _importedRows;
+        public DashboardSummary? GetSummary() => _summary;
+        public int GetImportedRows() => _importedRows;
 
-        private int?      ToInt(object? v)      => int.TryParse(v?.ToString(), out var r) ? r : null;
-        private decimal?  ToDecimal(object? v)  => decimal.TryParse(v?.ToString(), out var r) ? r : null;
+        // Method baru untuk mendapatkan raw rows
+        public List<ExcelRowDto> GetRawRows() => _rawRows;  // <-- Tambahkan method ini
+
+        // Helper methods
+        private int? ToInt(object? v) => int.TryParse(v?.ToString(), out var r) ? r : null;
+        private decimal? ToDecimal(object? v) => decimal.TryParse(v?.ToString(), out var r) ? r : null;
         private DateTime? ToDateTime(object? v) => DateTime.TryParse(v?.ToString(), out var r) ? r : null;
     }
 }

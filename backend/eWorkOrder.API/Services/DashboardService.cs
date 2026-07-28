@@ -1,50 +1,58 @@
+using eWorkOrder.API.Data.Repositories;
 using eWorkOrder.API.Models.Responses;
 
 namespace eWorkOrder.API.Services
 {
     public class DashboardService
     {
-        private readonly ExcelReaderService _reader;
+        private readonly WorkOrderRepository _repo;
 
-        public DashboardService(ExcelReaderService reader)
+        public DashboardService(WorkOrderRepository repo)
         {
-            _reader = reader;
+            _repo = repo;
         }
 
-        public DashboardResponseDto GetDashboard()
+        public async Task<DashboardResponseDto> GetDashboardAsync()
         {
-            var s = _reader.GetSummary();
-            if (s == null) return new DashboardResponseDto
-            {
-                Departments    = Array.Empty<DepartmentStatsDto>(),
-                OperationStats = new OperationStatsDto()
-            };
+            var data = await _repo.GetDashboardDataAsync();
 
             return new DashboardResponseDto
             {
-                TotalWO          = s.TotalWO,
-                Released         = s.Released,
-                Closed           = s.Closed,
-                Failed           = s.Failed,
-                Complete         = s.Complete,
-                ImportedRows     = s.ImportedRows,
-                UniqueOperations = s.UniqueOperations,
-                TotalDepartments = s.TotalDepartments,
-                UnmappedOpStatus = s.UnmappedOpStatus,
-                Departments      = s.Departments.Select(d => new DepartmentStatsDto
+                TotalWO          = data.TotalWO,
+                Released         = data.Released,
+                Closed           = data.Closed,
+                Failed           = data.Failed,
+                Complete         = data.Complete,
+                ImportedRows     = data.ImportedRows,
+                UniqueOperations = data.UniqueOperations,
+                TotalDepartments = data.TotalDepartments,
+                UnmappedOpStatus = 0,
+                Departments      = data.Departments.Select(d => new DepartmentStatsDto
                 {
                     DepartmentCode = d.Code,
-                    DepartmentName = d.Name,
+                    DepartmentName = MapDept(d.Code),
                     OperationCount = d.OperationCount,
-                    EmployeeCount  = d.EmployeeCount
+                    EmployeeCount  = d.EmployeeCount,
                 }).ToArray(),
-                OperationStats   = new OperationStatsDto
+                OperationStats = new OperationStatsDto
                 {
-                    NotStarted = s.OpNotStarted,
-                    InProgress = s.OpInProgress,
-                    Completed  = s.OpCompleted
+                    NotStarted = data.OpNotStarted,
+                    InProgress = data.OpInProgress,
+                    Completed  = data.OpCompleted,
                 }
             };
         }
+
+        private string MapDept(string code) => code switch
+        {
+            "MACH" => "Machining",
+            "QC"   => "Quality Control",
+            "TA"   => "Technical Assembly",
+            "WELD" => "Welding",
+            "ME"   => "Mechanical Engineering",
+            "WHS"  => "Warehouse",
+            "OSP"  => "Outside Process",
+            _      => code
+        };
     }
 }

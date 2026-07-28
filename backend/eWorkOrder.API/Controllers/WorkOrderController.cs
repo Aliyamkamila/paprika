@@ -17,7 +17,7 @@ namespace eWorkOrder.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetWorkOrders(
+        public async Task<IActionResult> GetWorkOrders(
             [FromQuery] string? search,
             [FromQuery] string? status,
             [FromQuery] string? department,
@@ -27,7 +27,7 @@ namespace eWorkOrder.API.Controllers
             try
             {
                 _logger.LogInformation("GetWorkOrders page={Page}", page);
-                var result = _workOrderService.GetWorkOrders(search, status, department, page, pageSize);
+                var result = await _workOrderService.GetWorkOrdersAsync(search, status, department, page, pageSize);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -38,12 +38,12 @@ namespace eWorkOrder.API.Controllers
         }
 
         [HttpGet("{woNumber}")]
-        public IActionResult GetWorkOrderDetail(string woNumber)
+        public async Task<IActionResult> GetWorkOrderDetail(string woNumber)
         {
             try
             {
                 _logger.LogInformation("GetWorkOrderDetail: {WoNumber}", woNumber);
-                var result = _workOrderService.GetDetail(woNumber);
+                var result = await _workOrderService.GetDetailAsync(woNumber);
 
                 if (result == null)
                     return NotFound(new { error = $"WO '{woNumber}' tidak ditemukan." });
@@ -54,6 +54,26 @@ namespace eWorkOrder.API.Controllers
             {
                 _logger.LogError("WO Detail error: {Message}", ex.Message);
                 return StatusCode(500, new { error = "Gagal ambil detail WO." });
+            }
+        }
+
+        [HttpGet("{woNumber}/operations/{operationNum}")]
+        public async Task<IActionResult> GetOperationDetail(string woNumber, string operationNum)
+        {
+            try
+            {
+                _logger.LogInformation("GetOperationDetail: WO={WoNumber}, Operation={OperationNum}", woNumber, operationNum);
+                var result = await _workOrderService.GetOperationDetailAsync(woNumber, operationNum);
+                
+                if (result == null)
+                    return NotFound(new { error = "Operation tidak ditemukan." });
+                    
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Operation Detail error: {Message}", ex.Message);
+                return StatusCode(500, new { error = "Gagal ambil detail operation." });
             }
         }
     }
