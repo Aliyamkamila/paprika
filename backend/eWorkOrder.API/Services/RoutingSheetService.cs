@@ -1,4 +1,5 @@
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 using eWorkOrder.API.Models.Responses;
 using System.Text.RegularExpressions;
 
@@ -20,43 +21,73 @@ namespace eWorkOrder.API.Services
             stream.Position = 0;
 
             var result = new RoutingSheetDto();
+            var fullText = new List<string>();
 
             using var pdf = PdfDocument.Open(stream.ToArray());
 
-            var allLines = new List<string>();
-
             foreach (var page in pdf.GetPages())
             {
-                var words = page.GetWords();
-                var lineGroups = words
-                    .GroupBy(w => Math.Round(w.BoundingBox.Bottom, 0))
-                    .OrderByDescending(g => g.Key);
+                // Ambil semua words, sort by Y descending (top to bottom), then X
+                var words = page.GetWords()
+                    .OrderByDescending(w => w.BoundingBox.Bottom)
+                    .ThenBy(w => w.BoundingBox.Left)
+                    .ToList();
 
-                foreach (var lineGroup in lineGroups)
+                // Group by Y position (same line = Y within 3px)
+                var lines = new List<string>();
+                var currentY = double.MaxValue;
+                var currentLine = new List<string>();
+
+                foreach (var word in words)
                 {
-                    var lineText = string.Join(" ", lineGroup
-                        .OrderBy(w => w.BoundingBox.Left)
-                        .Select(w => w.Text));
-                    if (!string.IsNullOrWhiteSpace(lineText))
-                        allLines.Add(lineText);
+                    if (Math.Abs(word.BoundingBox.Bottom - currentY) > 3)
+                    {
+                        if (currentLine.Any())
+                            lines.Add(string.Join(" ", currentLine));
+                        currentLine = new List<string> { word.Text };
+                        currentY = word.BoundingBox.Bottom;
+                    }
+                    else
+                    {
+                        currentLine.Add(word.Text);
+                    }
                 }
+                if (currentLine.Any())
+                    lines.Add(string.Join(" ", currentLine));
+
+                fullText.AddRange(lines);
             }
 
             // Parse header
-            result.JobNo           = ExtractAfter(allLines, "Job No:");
-            result.ItemDescription = ExtractAfter(allLines, "Item Description:");
-            result.Quantity        = ExtractAfter(allLines, "Qty:");
-            result.SerialNo        = ExtractAfter(allLines, "Serial No:");
-            result.SalesOrder      = ExtractAfter(allLines, "Sales Order");
-            result.ScheduledStart  = ExtractAfter(allLines, "Scheduled Start:");
-            result.ScheduledFinish = ExtractAfter(allLines, "Scheduled Finish:");
+            result.JobNo           = ExtractValue(fullText, @"Job No[:\s]+(\S+)");
+            result.Quantity        = ExtractValue(fullText, @"Qty[:\s]+(\S+)");
+            result.SerialNo        = ExtractValue(fullText, @"Serial No[:\s]+(\S+)");
             result.BarcodeJobNo    = result.JobNo;
-            result.BarcodeAssembly = ExtractAfter(allLines, "Assembly:");
+            result.BarcodeAssembly = ExtractValue(fullText, @"Assembly[:\s]+(\S+)");
+            result.SalesOrder      = ExtractValue(fullText, @"Sales\s+Order[:\s]+(\S+)");
+
+            // Parse Item Description
+            var descIdx = fullText.FindIndex(l => l.Contains("Item Description:"));
+            if (descIdx >= 0)
+            {
+                var descLine = fullText[descIdx];
+                var afterColon = descLine.Contains(":") 
+                    ? descLine.Substring(descLine.IndexOf("Item Description:") + 17).Trim()
+                    : "";
+                result.ItemDescription = afterColon.Split(new[]{"Qty:","Bill"}, StringSplitOptions.None)[0].Trim();
+            }
 
             // Parse operations
-            result.Operations = ParseOperations(allLines);
+            result.Operations = ParseOperations(fullText);
 
-            _logger.LogInformation("Parsed {Count} operations from PDF", result.Operations.Count);
+            _logger.LogInformation("Parsed {Count} operations from PDF: {JobNo}", 
+                result.Operations.Count, result.JobNo);
+
+            foreach (var op in result.Operations)
+            {
+                _logger.LogInformation("  Op {No}: Desc={Desc}, Dept={Dept}, Machine={Machine}",
+                    op.OperationNo, op.OperationDescription, op.Department, op.Machine);
+            }
 
             return result;
         }
@@ -64,7 +95,12 @@ namespace eWorkOrder.API.Services
         private List<RoutingOpDto> ParseOperations(List<string> lines)
         {
             var ops     = new List<RoutingOpDto>();
-            var opRegex = new Regex(@"Operation No\s*[:\-]?\s*(\d+)", RegexOptions.IgnoreCase);
+            var opRegex = new Regex(@"^Operation\s+No\s*[:\s]+(\d+)$", RegexOptions.IgnoreCase);
+            var opDescRegex = new Regex(@"Operation\s+Description[:\s]+(.+)", RegexOptions.IgnoreCase);
+            var deptRegex   = new Regex(@"^Department[:\s]+(\w+)", RegexOptions.IgnoreCase);
+            var machRegex   = new Regex(@"Operation\s+Code\s*/\s*Machine[:\s]+(\S+)", RegexOptions.IgnoreCase);
+            var schedStartRegex  = new Regex(@"Scheduled\s+Start[:\s]+(.+)", RegexOptions.IgnoreCase);
+            var schedFinishRegex = new Regex(@"Scheduled\s+Finish[:\s]+(.+)", RegexOptions.IgnoreCase);
 
             RoutingOpDto? currentOp   = null;
             bool inWorkInstruction    = false;
@@ -75,21 +111,16 @@ namespace eWorkOrder.API.Services
                 var line = lines[i].Trim();
                 if (string.IsNullOrWhiteSpace(line)) continue;
 
+                // Detect new operation
                 var opMatch = opRegex.Match(line);
                 if (opMatch.Success)
                 {
                     if (currentOp != null) ops.Add(currentOp);
-
                     currentOp = new RoutingOpDto
                     {
                         OperationNo  = opMatch.Groups[1].Value,
                         BarcodeValue = opMatch.Groups[1].Value,
                     };
-
-                    var descMatch = Regex.Match(line, @"Operation Description[:\s]+(.+)", RegexOptions.IgnoreCase);
-                    if (descMatch.Success)
-                        currentOp.OperationDescription = descMatch.Groups[1].Value.Trim();
-
                     inWorkInstruction = false;
                     inMaterials       = false;
                     continue;
@@ -97,56 +128,69 @@ namespace eWorkOrder.API.Services
 
                 if (currentOp == null) continue;
 
-                // ========== FIX: Department & Machine parsing ==========
-                if (line.StartsWith("Department:", StringComparison.OrdinalIgnoreCase))
+                // Operation Description
+                var descMatch = opDescRegex.Match(line);
+                if (descMatch.Success && string.IsNullOrEmpty(currentOp.OperationDescription))
                 {
-                    // Format: "Department: ME Operation Code / Machine: ME101"
-                    // Ambil hanya dept code, bukan seluruh baris
-                    var deptMatch = Regex.Match(line, @"Department:\s*(\w+)", RegexOptions.IgnoreCase);
-                    if (deptMatch.Success)
-                        currentOp.Department = deptMatch.Groups[1].Value.Trim();
-
-                    // Sekalian ambil machine dari baris yang sama
-                    var machMatch = Regex.Match(line, @"(?:Operation Code\s*/\s*Machine:|Machine:)\s*(\S+)", RegexOptions.IgnoreCase);
-                    if (machMatch.Success)
-                        currentOp.Machine = machMatch.Groups[1].Value.Trim();
-
+                    currentOp.OperationDescription = descMatch.Groups[1].Value
+                        .Split(new[]{"Scheduled"}, StringSplitOptions.None)[0].Trim();
                     continue;
                 }
 
-                // Skip baris "Operation Code / Machine" yang berdiri sendiri
-                if (line.Contains("Operation Code", StringComparison.OrdinalIgnoreCase) &&
-                    !line.StartsWith("Department:", StringComparison.OrdinalIgnoreCase))
+                // Department
+                var deptMatch = deptRegex.Match(line);
+                if (deptMatch.Success && string.IsNullOrEmpty(currentOp.Department))
                 {
-                    var machMatch = Regex.Match(line, @"(?:Operation Code\s*/\s*Machine:|Machine:)\s*(\S+)", RegexOptions.IgnoreCase);
-                    if (machMatch.Success)
-                        currentOp.Machine = machMatch.Groups[1].Value.Trim();
-                    continue;
-                }
-                // ======================================================
+                    currentOp.Department = deptMatch.Groups[1].Value.Trim();
 
-                if (line.StartsWith("Scheduled Start:", StringComparison.OrdinalIgnoreCase))
-                {
-                    currentOp.ScheduledStart = ExtractInline(line, "Scheduled Start:");
+                    // Machine might be on same line
+                    var machOnSame = machRegex.Match(line);
+                    if (machOnSame.Success)
+                        currentOp.Machine = machOnSame.Groups[1].Value.Trim();
                     continue;
                 }
 
-                if (line.StartsWith("Scheduled Finish:", StringComparison.OrdinalIgnoreCase))
+                // Machine (separate line)
+                var machMatch = machRegex.Match(line);
+                if (machMatch.Success && string.IsNullOrEmpty(currentOp.Machine))
                 {
-                    currentOp.ScheduledFinish = ExtractInline(line, "Scheduled Finish:");
+                    currentOp.Machine = machMatch.Groups[1].Value.Trim();
                     continue;
                 }
 
-                if (line.StartsWith("NOTE", StringComparison.OrdinalIgnoreCase) ||
-                    line.StartsWith("WF ID#", StringComparison.OrdinalIgnoreCase) ||
-                    line.Contains("STD ROUTING", StringComparison.OrdinalIgnoreCase))
+                // Scheduled Start
+                var schedStartMatch = schedStartRegex.Match(line);
+                if (schedStartMatch.Success && string.IsNullOrEmpty(currentOp.ScheduledStart))
+                {
+                    currentOp.ScheduledStart = schedStartMatch.Groups[1].Value
+                        .Split(new[]{"Scheduled","00:00"}, StringSplitOptions.None)[0].Trim();
+                    continue;
+                }
+
+                // Scheduled Finish
+                var schedFinishMatch = schedFinishRegex.Match(line);
+                if (schedFinishMatch.Success && string.IsNullOrEmpty(currentOp.ScheduledFinish))
+                {
+                    currentOp.ScheduledFinish = schedFinishMatch.Groups[1].Value
+                        .Split(new[]{"00:00"}, StringSplitOptions.None)[0].Trim();
+                    continue;
+                }
+
+                // Work instructions triggers
+                if (line.StartsWith("WF ID", StringComparison.OrdinalIgnoreCase) ||
+                    line.StartsWith("NOTE", StringComparison.OrdinalIgnoreCase) ||
+                    line.StartsWith("PER ", StringComparison.OrdinalIgnoreCase) ||
+                    line.StartsWith("- ", StringComparison.OrdinalIgnoreCase) ||
+                    line.StartsWith("* ", StringComparison.OrdinalIgnoreCase) ||
+                    line.StartsWith("> ", StringComparison.OrdinalIgnoreCase) ||
+                    (line.StartsWith("S/O", StringComparison.OrdinalIgnoreCase)) ||
+                    line.StartsWith("Scope", StringComparison.OrdinalIgnoreCase))
                 {
                     inWorkInstruction = true;
                     inMaterials       = false;
-                    currentOp.WorkInstructions.Add(line);
-                    continue;
                 }
 
+                // Materials section
                 if (line.StartsWith("Requirements", StringComparison.OrdinalIgnoreCase) ||
                     line.StartsWith("Component Item", StringComparison.OrdinalIgnoreCase))
                 {
@@ -155,12 +199,20 @@ namespace eWorkOrder.API.Services
                     continue;
                 }
 
+                // Stop collecting at Resource Seq
                 if (line.StartsWith("Resource Seq", StringComparison.OrdinalIgnoreCase))
                 {
                     inWorkInstruction = false;
                     inMaterials       = false;
                     continue;
                 }
+
+                // Skip header/footer lines
+                if (line.Contains("MES Routing Sheet") ||
+                    line.Contains("Page ") ||
+                    line.Contains("Printed By") ||
+                    line.Contains("IO ID BTM"))
+                    continue;
 
                 if (inWorkInstruction && line.Length > 3)
                 {
@@ -176,30 +228,18 @@ namespace eWorkOrder.API.Services
             }
 
             if (currentOp != null) ops.Add(currentOp);
-
             return ops;
         }
 
-        private string? ExtractAfter(List<string> lines, string key)
+        private string? ExtractValue(List<string> lines, string pattern)
         {
+            var regex = new Regex(pattern, RegexOptions.IgnoreCase);
             foreach (var line in lines)
             {
-                var idx = line.IndexOf(key, StringComparison.OrdinalIgnoreCase);
-                if (idx >= 0)
-                {
-                    var after = line.Substring(idx + key.Length).Trim();
-                    if (!string.IsNullOrEmpty(after))
-                        return after.Split(' ').FirstOrDefault();
-                }
+                var match = regex.Match(line);
+                if (match.Success) return match.Groups[1].Value.Trim();
             }
             return null;
-        }
-
-        private string? ExtractInline(string line, string key)
-        {
-            var idx = line.IndexOf(key, StringComparison.OrdinalIgnoreCase);
-            if (idx < 0) return null;
-            return line.Substring(idx + key.Length).Trim();
         }
     }
 }

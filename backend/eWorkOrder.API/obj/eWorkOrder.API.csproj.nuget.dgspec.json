@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj": {}
+    "D:\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj": {
+    "D:\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj",
+        "projectUniqueName": "D:\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj",
         "projectName": "eWorkOrder.API",
-        "projectPath": "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj",
-        "packagesPath": "C:\\Users\\kamiali\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\eWorkOrder.API\\obj\\",
+        "projectPath": "D:\\paprika\\backend\\eWorkOrder.API\\eWorkOrder.API.csproj",
+        "packagesPath": "C:\\Users\\MyBook Hype AMD\\.nuget\\packages\\",
+        "outputPath": "D:\\paprika\\backend\\eWorkOrder.API\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\kamiali\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\MyBook Hype AMD\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -51,9 +51,33 @@
               "target": "Package",
               "version": "[8.0.28, )"
             },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
+            },
+            "UglyToad.PdfPig": {
+              "target": "Package",
+              "version": "[1.7.0-custom-5, )"
             }
           },
           "imports": [
@@ -75,7 +99,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
