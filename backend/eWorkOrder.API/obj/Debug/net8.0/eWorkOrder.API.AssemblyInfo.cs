@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("eWorkOrder.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+68f9858edeb4c65a957eccbd49bcee2248fe598f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0597f7263bbd8877e951c556ca484d8728379327")]
 [assembly: System.Reflection.AssemblyProductAttribute("eWorkOrder.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("eWorkOrder.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

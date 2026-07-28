@@ -75,7 +75,7 @@ namespace eWorkOrder.API.Services
                             OperationNum   = routingOp.OperationNo.Trim(),
                             Description    = routingOp.OperationDescription?.Trim(),
                             DepartmentCode = routingOp.Department?.Trim(),
-                            MachineCode    = routingOp.Machine?.Trim(),
+                            MachineCode    = routingOp.OperationCodeMachine?.Trim() ?? routingOp.Machine?.Trim(),
                             BarcodeValue   = routingOp.BarcodeValue?.Trim(),
                             ScheduledStart  = ParseDate(routingOp.ScheduledStart),
                             ScheduledFinish = ParseDate(routingOp.ScheduledFinish),
@@ -84,17 +84,21 @@ namespace eWorkOrder.API.Services
                         };
                         _db.Operations.Add(op);
                         await _db.SaveChangesAsync();
+                        _logger.LogInformation("Created new operation {OpNo} for WO {WoNumber}", 
+                            op.OperationNum, wo.WoNumber);
                     }
                     else
                     {
-                        // Update info dari PDF
+                        // Update info dari PDF/JSON
                         op.Description    = routingOp.OperationDescription?.Trim();
                         op.DepartmentCode = routingOp.Department?.Trim();
-                        op.MachineCode    = routingOp.Machine?.Trim();
+                        op.MachineCode    = routingOp.OperationCodeMachine?.Trim() ?? routingOp.Machine?.Trim();
                         op.BarcodeValue   = routingOp.BarcodeValue?.Trim();
                         op.ScheduledStart  = ParseDate(routingOp.ScheduledStart);
                         op.ScheduledFinish = ParseDate(routingOp.ScheduledFinish);
                         op.UpdatedAt      = DateTime.Now;
+                        _logger.LogInformation("Updated operation {OpNo} for WO {WoNumber}", 
+                            op.OperationNum, wo.WoNumber);
                     }
 
                     // Hapus work instructions lama → insert ulang
@@ -102,19 +106,57 @@ namespace eWorkOrder.API.Services
                         .Where(w => w.OperationId == op.Id);
                     _db.WorkInstructions.RemoveRange(oldInstructions);
 
-                    // Insert work instructions baru dengan SeqNo
+                    // Insert work instructions baru
                     int seqNo = 10;
-                    foreach (var instruction in routingOp.WorkInstructions)
+                    
+                    // Pakai Steps jika ada, fallback ke WorkInstructions
+                    if (routingOp.Steps?.Any() == true)
                     {
-                        if (string.IsNullOrWhiteSpace(instruction)) continue;
-                        _db.WorkInstructions.Add(new WorkInstructionEntity
+                        _logger.LogInformation("Using Steps for operation {OpNo} - {StepCount} steps found", 
+                            op.OperationNum, routingOp.Steps.Count);
+                        
+                        foreach (var step in routingOp.Steps)
                         {
-                            OperationId     = op.Id,
-                            SeqNo           = seqNo,
-                            InstructionText = instruction.Trim(),
-                            CreatedAt       = DateTime.Now,
-                        });
-                        seqNo += 10;
+                            if (string.IsNullOrWhiteSpace(step.Text)) continue;
+                            
+                            var stepNo = 0;
+                            if (!string.IsNullOrEmpty(step.StepNo))
+                            {
+                                int.TryParse(step.StepNo, out stepNo);
+                            }
+                            
+                            _db.WorkInstructions.Add(new WorkInstructionEntity
+                            {
+                                OperationId     = op.Id,
+                                SeqNo           = stepNo > 0 ? stepNo : seqNo,
+                                InstructionText = step.Text.Trim(),
+                                InspectType     = step.InspectRole?.Trim(),
+                                CreatedAt       = DateTime.Now,
+                            });
+                            seqNo += 10;
+                        }
+                        _logger.LogInformation("Added {StepCount} steps for operation {OpNo}", 
+                            routingOp.Steps.Count, op.OperationNum);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Using fallback WorkInstructions for operation {OpNo}", 
+                            op.OperationNum);
+                        
+                        foreach (var instruction in routingOp.WorkInstructions)
+                        {
+                            if (string.IsNullOrWhiteSpace(instruction)) continue;
+                            _db.WorkInstructions.Add(new WorkInstructionEntity
+                            {
+                                OperationId     = op.Id,
+                                SeqNo           = seqNo,
+                                InstructionText = instruction.Trim(),
+                                CreatedAt       = DateTime.Now,
+                            });
+                            seqNo += 10;
+                        }
+                        _logger.LogInformation("Added {InstCount} work instructions for operation {OpNo}", 
+                            routingOp.WorkInstructions.Count, op.OperationNum);
                     }
 
                     // Hapus materials lama → insert ulang
@@ -123,16 +165,21 @@ namespace eWorkOrder.API.Services
                     _db.OperationMaterials.RemoveRange(oldMaterials);
 
                     // Insert materials baru dengan ComponentItem
-                    foreach (var mat in routingOp.Materials)
+                    if (routingOp.Materials?.Any() == true)
                     {
-                        if (string.IsNullOrWhiteSpace(mat)) continue;
-                        _db.OperationMaterials.Add(new OperationMaterialEntity
+                        foreach (var mat in routingOp.Materials)
                         {
-                            OperationId   = op.Id,
-                            ComponentItem = mat.Trim(),
-                            Description   = mat.Trim(),
-                            CreatedAt     = DateTime.Now,
-                        });
+                            if (string.IsNullOrWhiteSpace(mat)) continue;
+                            _db.OperationMaterials.Add(new OperationMaterialEntity
+                            {
+                                OperationId   = op.Id,
+                                ComponentItem = mat.Trim(),
+                                Description   = mat.Trim(),
+                                CreatedAt     = DateTime.Now,
+                            });
+                        }
+                        _logger.LogInformation("Added {MatCount} materials for operation {OpNo}", 
+                            routingOp.Materials.Count, op.OperationNum);
                     }
 
                     await _db.SaveChangesAsync();
