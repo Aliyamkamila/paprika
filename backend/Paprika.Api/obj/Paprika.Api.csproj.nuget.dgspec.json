@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj": {}
+    "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj": {}
   },
   "projects": {
-    "D:\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj": {
+    "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj",
+        "projectUniqueName": "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj",
         "projectName": "Paprika.Api",
-        "projectPath": "D:\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj",
-        "packagesPath": "C:\\Users\\MyBook Hype AMD\\.nuget\\packages\\",
-        "outputPath": "D:\\paprika\\backend\\Paprika.Api\\obj\\",
+        "projectPath": "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\Paprika.Api\\Paprika.Api.csproj",
+        "packagesPath": "C:\\Users\\kamiali\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\kamiali\\OneDrive - Baker Hughes\\EworkOrder\\paprika\\backend\\Paprika.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\MyBook Hype AMD\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\kamiali\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -71,7 +71,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.422/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

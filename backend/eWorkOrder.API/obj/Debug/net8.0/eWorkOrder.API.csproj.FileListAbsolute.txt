@@ -40,3 +40,46 @@ D:\paprika\backend\eWorkOrder.API\obj\Debug\net8.0\refint\eWorkOrder.API.dll
 D:\paprika\backend\eWorkOrder.API\obj\Debug\net8.0\eWorkOrder.API.pdb
 D:\paprika\backend\eWorkOrder.API\obj\Debug\net8.0\eWorkOrder.API.genruntimeconfig.cache
 D:\paprika\backend\eWorkOrder.API\obj\Debug\net8.0\ref\eWorkOrder.API.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\appsettings.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\package-lock.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\eWorkOrder.API.exe
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\eWorkOrder.API.deps.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\eWorkOrder.API.runtimeconfig.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\eWorkOrder.API.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\eWorkOrder.API.pdb
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\EPPlus.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\EPPlus.Interfaces.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Json.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Microsoft.IO.RecyclableMemoryStream.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\System.Security.Cryptography.Xml.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.csproj.AssemblyReference.cache
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.AssemblyInfoInputs.cache
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.AssemblyInfo.cs
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.csproj.CoreCompileInputs.cache
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.sourcelink.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets\msbuild.eWorkOrder.API.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets\msbuild.build.eWorkOrder.API.props
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.eWorkOrder.API.props
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.eWorkOrder.API.props
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\scopedcss\bundle\eWorkOrder.API.styles.css
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrd.9092862A.Up2Date
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\refint\eWorkOrder.API.dll
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.pdb
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\eWorkOrder.API.genruntimeconfig.cache
+C:\Users\kamiali\OneDrive - Baker Hughes\EworkOrder\paprika\backend\EworkOrder.API\obj\Debug\net8.0\ref\eWorkOrder.API.dll

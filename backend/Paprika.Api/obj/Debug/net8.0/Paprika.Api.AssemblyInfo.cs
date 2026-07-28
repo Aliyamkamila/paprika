@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Paprika.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2bf1d956970881d3575c68d6309cf56bb7c11e76")]
 [assembly: System.Reflection.AssemblyProductAttribute("Paprika.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Paprika.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
