@@ -1,5 +1,48 @@
 import { useState } from 'react'
-import { importExcel } from '../services/api'
+import { importExcel, uploadRoutingPdf } from '../services/api'
+
+const styles = {
+  section: {
+    background: '#fff', border: '0.5px solid #e8e8e8',
+    borderRadius: '12px', padding: '24px', marginBottom: '16px',
+  },
+  sectionTitle: {
+    display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px',
+  },
+  sectionIcon: { fontSize: '18px', color: '#1a7a4a' },
+  sectionLabel: { fontSize: '14px', fontWeight: '500', color: '#111' },
+  sectionDesc: { fontSize: '12px', color: '#9ca3af', marginBottom: '12px' },
+  uploadBtn: (loading) => ({
+    display: 'inline-flex', alignItems: 'center', gap: '8px',
+    padding: '8px 16px', borderRadius: '8px',
+    background: loading ? '#f0f0f0' : '#1a7a4a',
+    color: '#fff', fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer',
+  }),
+  successBox: {
+    marginTop: '16px', background: '#e8f5ee', borderRadius: '8px', padding: '14px 16px',
+  },
+  errorBox: {
+    marginTop: '16px', background: '#fdecea', borderRadius: '8px', padding: '12px 16px',
+    fontSize: '13px', color: '#c0392b',
+  },
+  spinner: { marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1a7a4a' },
+  infoGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginTop: '12px' },
+  infoCard: { background: '#f9fafb', borderRadius: '8px', padding: '10px 12px' },
+  infoLabel: { fontSize: '10px', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' },
+  infoValue: { fontSize: '13px', fontWeight: '500', color: '#111' },
+  opRow: {
+    display: 'flex', alignItems: 'center', gap: '12px',
+    padding: '10px 14px', borderRadius: '8px', cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  badge: (type) => ({
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    padding: '2px 10px', borderRadius: '12px',
+    background: type === 'instruction' ? 'rgba(2,188,148,0.08)' : 'rgba(244,162,97,0.08)',
+    color: type === 'instruction' ? '#018374' : '#7a5a00',
+    fontSize: '11px', fontWeight: '500',
+  }),
+}
 
 const ImportData = () => {
   const [loading, setLoading] = useState(false)
@@ -10,6 +53,7 @@ const ImportData = () => {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfResult, setPdfResult] = useState(null)
   const [pdfError, setPdfError] = useState('')
+  const [expandedOps, setExpandedOps] = useState({})
 
   // State untuk JSON
   const [jsonLoading, setJsonLoading] = useState(false)
@@ -40,15 +84,9 @@ const ImportData = () => {
     setPdfLoading(true)
     setPdfResult(null)
     setPdfError('')
+    setExpandedOps({})
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const res = await fetch('http://localhost:5062/api/routing/upload', {
-        method: 'POST',
-        body: formData,
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      const data = await uploadRoutingPdf(file)
       setPdfResult(data)
     } catch (err) {
       setPdfError('Gagal upload PDF.')
@@ -92,6 +130,8 @@ const ImportData = () => {
       setJsonLoading(false)
       e.target.value = ''
     }
+  const toggleOp = (opNo) => {
+    setExpandedOps(prev => ({ ...prev, [opNo]: !prev[opNo] }))
   }
 
   return (
@@ -207,11 +247,159 @@ const ImportData = () => {
         )}
 
         {pdfResult && (
-          <div style={{ marginTop: '16px', background: '#e8f5ee', borderRadius: '8px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '13px', fontWeight: '500', color: '#1a7a4a', marginBottom: '6px' }}>✅ PDF Berhasil!</div>
-            <div style={{ fontSize: '12px', color: '#1a7a4a' }}>{pdfResult.message}</div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-              Job No: <strong>{pdfResult.jobNo}</strong> · {pdfResult.operations} operations
+          <div style={{ marginTop: '16px' }}>
+            {/* Success Banner */}
+            <div style={{ background: '#e8f5ee', borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: '#1a7a4a', marginBottom: '6px' }}>✅ PDF Berhasil!</div>
+              <div style={{ fontSize: '12px', color: '#1a7a4a' }}>{pdfResult.message}</div>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                Job No: <strong>{pdfResult.jobNo}</strong> · {pdfResult.totalOperations} operations
+              </div>
+            </div>
+
+            {/* Header Info */}
+            <div style={styles.infoGrid}>
+              {[
+                { label: 'Job No', value: pdfResult.jobNo },
+                { label: 'Description', value: pdfResult.itemDescription || '-' },
+                { label: 'Quantity', value: pdfResult.quantity || '-' },
+                { label: 'Serial No', value: pdfResult.serialNo || '-' },
+                { label: 'Sales Order', value: pdfResult.salesOrder || '-' },
+                { label: 'Assembly', value: pdfResult.barcodeAssembly || '-' },
+                { label: 'Total Operations', value: pdfResult.totalOperations },
+                { label: 'Total Work Instructions', value: pdfResult.operations?.reduce((sum, op) => sum + (op.workInstructions?.length || 0), 0) },
+              ].map((item, i) => (
+                <div key={i} style={styles.infoCard}>
+                  <div style={styles.infoLabel}>{item.label}</div>
+                  <div style={styles.infoValue}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Operations List */}
+            <div style={{ marginTop: '16px', borderTop: '0.5px solid #e8e8e8', paddingTop: '16px' }}>
+              <div style={{ fontSize: '13px', fontWeight: '500', color: '#111', marginBottom: '12px' }}>
+                Operations Detail
+                <span style={{ fontSize: '11px', color: '#9ca3af', fontWeight: '400', marginLeft: '8px' }}>
+                  (klik untuk expand / collapse)
+                </span>
+              </div>
+
+              {pdfResult.operations?.map((op, idx) => {
+                const isExpanded = expandedOps[op.operationNo]
+                const instCount = op.workInstructions?.length || 0
+                const matCount = op.materials?.length || 0
+
+                return (
+                  <div key={idx} style={{ marginBottom: '8px' }}>
+                    {/* Operation Row (clickable) */}
+                    <div
+                      onClick={() => toggleOp(op.operationNo)}
+                      style={{
+                        ...styles.opRow,
+                        background: isExpanded ? 'rgba(2,188,148,0.04)' : '#f9fafb',
+                        border: `0.5px solid ${isExpanded ? 'rgba(2,188,148,0.2)' : '#e8e8e8'}`,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(2,188,148,0.06)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = isExpanded ? 'rgba(2,188,148,0.04)' : '#f9fafb' }}
+                    >
+                      <div style={{
+                        width: '28px', height: '28px', borderRadius: '6px',
+                        background: '#1a7a4a', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: '11px', fontWeight: '600', flexShrink: 0,
+                      }}>
+                        {op.operationNo}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '12px', fontWeight: '500', color: '#111' }}>
+                          {op.operationDescription || '-'}
+                        </div>
+                        {(op.department || op.machine) && (
+                          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                            {op.department && <span>Dept: {op.department}</span>}
+                            {op.department && op.machine && <span> · </span>}
+                            {op.machine && <span>Machine: {op.machine}</span>}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        {instCount > 0 && (
+                          <span style={styles.badge('instruction')}>
+                            <i className="ti ti-clipboard-text" style={{ fontSize: '12px' }} aria-hidden="true" />
+                            {instCount}
+                          </span>
+                        )}
+                        {matCount > 0 && (
+                          <span style={styles.badge('material')}>
+                            <i className="ti ti-package" style={{ fontSize: '12px' }} aria-hidden="true" />
+                            {matCount}
+                          </span>
+                        )}
+                        <span style={{ color: '#9ca3af', fontSize: '12px', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'none' }}>
+                          <i className="ti ti-chevron-down" aria-hidden="true" />
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Expanded Detail */}
+                    {isExpanded && (
+                      <div style={{
+                        background: '#fff', border: '0.5px solid rgba(2,188,148,0.15)',
+                        borderTop: 'none', borderRadius: '0 0 8px 8px',
+                        padding: '14px 16px 16px 54px', marginTop: '-2px',
+                      }}>
+                        {/* Work Instructions */}
+                        {instCount > 0 && (
+                          <div style={{ marginBottom: matCount > 0 ? '14px' : 0 }}>
+                            <div style={{ fontSize: '11px', fontWeight: '500', color: '#018374', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <i className="ti ti-clipboard-text" aria-hidden="true" />
+                              Work Instructions ({instCount})
+                            </div>
+                            <div style={{ background: 'rgba(2,188,148,0.03)', borderRadius: '6px', padding: '8px 12px' }}>
+                              {op.workInstructions.map((inst, j) => (
+                                <div key={j} style={{
+                                  fontSize: '12px', color: '#374151', lineHeight: '1.6',
+                                  padding: '4px 0',
+                                  borderBottom: j < instCount - 1 ? '0.5px solid rgba(2,188,148,0.08)' : 'none',
+                                }}>
+                                  {inst}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Materials */}
+                        {matCount > 0 && (
+                          <div>
+                            <div style={{ fontSize: '11px', fontWeight: '500', color: '#7a5a00', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <i className="ti ti-package" aria-hidden="true" />
+                              Materials ({matCount})
+                            </div>
+                            <div style={{ background: 'rgba(244,162,97,0.03)', borderRadius: '6px', padding: '8px 12px' }}>
+                              {op.materials.map((mat, j) => (
+                                <div key={j} style={{
+                                  fontSize: '12px', color: '#374151', lineHeight: '1.6',
+                                  padding: '4px 0',
+                                  borderBottom: j < matCount - 1 ? '0.5px solid rgba(244,162,97,0.08)' : 'none',
+                                }}>
+                                  {mat}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {instCount === 0 && matCount === 0 && (
+                          <div style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'center', padding: '8px' }}>
+                            Tidak ada work instructions atau materials untuk operation ini.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getOperationDetail } from '../services/api'
+import { getOperationDetail, createNote } from '../services/api'
 
 const statusStyle = (s) => {
   const up = s?.toUpperCase()
@@ -9,10 +9,12 @@ const statusStyle = (s) => {
   return { bg: '#f3f4f6', color: '#6b7280', icon: '❓' }
 }
 
-const OperationDetailModal = ({ woNumber, operationNum, onClose }) => {
+const OperationDetailModal = ({ woNumber, operationNum, onClose, onNoteSaved }) => {
   const [detail, setDetail]   = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
+  const [noteText, setNoteText] = useState('')
+  const [sendingNote, setSendingNote] = useState(false)
 
   useEffect(() => {
     const fetch = async () => {
@@ -196,10 +198,120 @@ const OperationDetailModal = ({ woNumber, operationNum, onClose }) => {
                 </div>
               )}
 
+              {/* Notes from DB */}
+              {detail.notes?.length > 0 && (
+                <div style={{ marginBottom: '20px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '500', color: '#111', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <i className="ti ti-notes" style={{ color: '#1a7a4a' }} aria-hidden="true" />
+                    Notes ({detail.notes.length})
+                  </div>
+                  {detail.notes.map((n, i) => (
+                    <div key={i} style={{
+                      background: '#f9fafb', borderRadius: '8px',
+                      padding: '10px 14px', marginBottom: '6px',
+                      fontSize: '12px', color: '#374151',
+                    }}>
+                      <div style={{ lineHeight: '1.5', marginBottom: '4px' }}>{n.noteText}</div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '10px', background: 'rgba(2,188,148,0.10)', color: '#018374', fontWeight: '500' }}>
+                          {n.authorDept}
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#9ca3af' }}>{n.authorName}</span>
+                        <span style={{ fontSize: '10px', color: '#d1d5db' }}>·</span>
+                        <span style={{ fontSize: '10px', color: '#9ca3af' }}>{n.createdAt}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Note Section */}
+              <div style={{
+                borderTop: '0.5px solid #e8e8e8',
+                paddingTop: '16px',
+              }}>
+                <div style={{ fontSize: '12px', fontWeight: '500', color: '#111', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="ti ti-plus" style={{ color: '#1a7a4a' }} aria-hidden="true" />
+                  Add Note
+                </div>
+                <textarea
+                  rows={3}
+                  placeholder="Tulis note di sini..."
+                  value={noteText}
+                  onChange={e => setNoteText(e.target.value)}
+                  style={{
+                    width: '100%', padding: '10px 12px',
+                    fontSize: '13px', color: '#111',
+                    border: '0.5px solid #e8e8e8', borderRadius: '8px',
+                    background: '#f9fafb', resize: 'vertical',
+                    outline: 'none', fontFamily: 'inherit',
+                    lineHeight: '1.6', marginBottom: '10px',
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button 
+                    onClick={() => setNoteText('')} 
+                    style={{
+                      fontSize: '12px', padding: '6px 14px',
+                      borderRadius: '8px', border: '0.5px solid #e8e8e8',
+                      background: '#fff', color: '#6b7280', cursor: 'pointer',
+                    }}
+                  >
+                    Clear
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      if (!noteText.trim() || sendingNote) return
+                      setSendingNote(true)
+                      try {
+                        const saved = await createNote(woNumber, operationNum, noteText.trim(), 'Aliya Kamila', detail?.department ?? '-')
+                        if (onNoteSaved) {
+                          onNoteSaved({
+                            operationNum: operationNum,
+                            text: noteText.trim(),
+                            department: detail?.department ?? '-',
+                            author: 'Aliya Kamila',
+                            timestamp: new Date().toLocaleString('en-GB', {
+                              day: '2-digit', month: 'short', year: 'numeric',
+                              hour: '2-digit', minute: '2-digit'
+                            }),
+                          })
+                        }
+                        setDetail(prev => ({
+                          ...prev,
+                          notes: [...(prev?.notes ?? []), saved]
+                        }))
+                        setNoteText('')
+                      } catch (err) {
+                        console.error('Failed to save note:', err)
+                      } finally {
+                        setSendingNote(false)
+                      }
+                    }} 
+                    disabled={!noteText.trim() || sendingNote}
+                    style={{
+                      fontSize: '12px', padding: '6px 14px',
+                      borderRadius: '8px', border: 'none',
+                      background: noteText.trim() && !sendingNote ? '#1a7a4a' : '#d1d5db',
+                      color: '#fff', cursor: noteText.trim() && !sendingNote ? 'pointer' : 'not-allowed',
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                    }}
+                  >
+                    {sendingNote ? (
+                      <span className="spinner-border spinner-border-sm" />
+                    ) : (
+                      <i className="ti ti-send" style={{ fontSize: '13px' }} aria-hidden="true" />
+                    )}
+                    {sendingNote ? 'Sending...' : 'Send Note'}
+                  </button>
+                </div>
+              </div>
+
               {/* No data */}
               {detail.workInstructions?.length === 0 &&
                detail.materials?.length === 0 &&
-               detail.employees?.length === 0 && (
+               detail.employees?.length === 0 &&
+               detail.notes?.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#9ca3af', fontSize: '13px' }}>
                   Belum ada data detail untuk operation ini.
                   <div style={{ fontSize: '11px', marginTop: '4px' }}>Upload PDF routing sheet untuk mengisi work instructions.</div>

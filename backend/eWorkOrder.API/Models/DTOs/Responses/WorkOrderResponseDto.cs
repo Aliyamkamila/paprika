@@ -19,5 +19,8 @@ namespace eWorkOrder.API.Models.Responses
         public string? CurrentOperation { get; set; }
         public string? Department { get; set; }
         public int OperationCount { get; set; }
+        public bool HasRoutingData { get; set; }
+        public int? SerialNo { get; set; }
+        public string? SalesOrder { get; set; }
     }
 }

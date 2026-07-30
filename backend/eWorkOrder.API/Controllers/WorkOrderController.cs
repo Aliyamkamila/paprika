@@ -76,5 +76,35 @@ namespace eWorkOrder.API.Controllers
                 return StatusCode(500, new { error = "Gagal ambil detail operation." });
             }
         }
+
+        [HttpPost("{woNumber}/operations/{operationNum}/notes")]
+        public async Task<IActionResult> CreateNote(string woNumber, string operationNum, [FromBody] CreateNoteRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.NoteText))
+                    return BadRequest(new { error = "Note text tidak boleh kosong." });
+
+                _logger.LogInformation("CreateNote: WO={WoNumber}, Op={OperationNum}", woNumber, operationNum);
+                var result = await _workOrderService.CreateNoteAsync(woNumber, operationNum, request.NoteText.Trim(), request.AuthorName ?? "User", request.AuthorDept ?? "-");
+
+                if (result == null)
+                    return NotFound(new { error = "Operation tidak ditemukan." });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("CreateNote error: {Message}", ex.Message);
+                return StatusCode(500, new { error = "Gagal menyimpan note." });
+            }
+        }
+    }
+
+    public class CreateNoteRequest
+    {
+        public string? NoteText { get; set; }
+        public string? AuthorName { get; set; }
+        public string? AuthorDept { get; set; }
     }
 }

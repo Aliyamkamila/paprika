@@ -388,7 +388,7 @@ const WorkOrderList = ({ onSelect }) => {
                   background: 'rgba(5,50,43,0.02)',
                   borderBottom: '1px solid rgba(5,50,43,0.06)',
                 }}>
-                  {['WO Number', 'Description', 'Qty', 'Status', 'Dept', 'Ops', 'Current Op', ''].map((h, i) => (
+                  {['WO Number', 'Description', 'Qty', 'Status', 'Dept', 'Ops', 'Current Op', 'Route', ''].map((h, i) => (
                     <th key={i} style={{
                       textAlign: i === 0 ? 'left' : i === 7 ? 'center' : 'center',
                       padding: '12px 16px',
@@ -407,7 +407,7 @@ const WorkOrderList = ({ onSelect }) => {
               <tbody>
                 {data.data.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{
+                    <td colSpan={9} style={{
                       padding: '40px 0',
                       textAlign: 'center',
                       color: 'rgba(5,50,43,0.3)',
@@ -492,6 +492,44 @@ const WorkOrderList = ({ onSelect }) => {
                       fontSize: '12px',
                     }}>
                       {wo.currentOperation}
+                    </td>
+                    <td style={{
+                      padding: '12px 16px',
+                      textAlign: 'center',
+                    }}>
+                      {wo.hasRoutingData ? (
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2px 10px',
+                          borderRadius: '12px',
+                          background: 'rgba(2,188,148,0.10)',
+                          color: '#02BC94',
+                          fontSize: '10px',
+                          fontWeight: '600',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.3px',
+                        }}>
+                          <i className="ti ti-file-spreadsheet" style={{ fontSize: '12px' }} aria-hidden="true" />
+                          PDF
+                        </span>
+                      ) : (
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2px 10px',
+                          borderRadius: '12px',
+                          background: 'rgba(5,50,43,0.04)',
+                          color: 'rgba(5,50,43,0.25)',
+                          fontSize: '10px',
+                          fontWeight: '500',
+                        }}>
+                          <i className="ti ti-file-unknown" style={{ fontSize: '12px' }} aria-hidden="true" />
+                          —
+                        </span>
+                      )}
                     </td>
                     <td style={{
                       padding: '12px 16px',

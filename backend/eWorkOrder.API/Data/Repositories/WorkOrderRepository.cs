@@ -169,6 +169,35 @@ namespace eWorkOrder.API.Data.Repositories
                 }).ToList(),
             };
         }
+
+        public async Task<NoteDto?> CreateNoteAsync(string woNumber, string operationNum, string noteText, string authorName, string authorDept)
+        {
+            var op = await _db.Operations
+                .Include(o => o.WorkOrder)
+                .FirstOrDefaultAsync(o => o.WorkOrder!.WoNumber == woNumber && o.OperationNum == operationNum);
+
+            if (op == null) return null;
+
+            var note = new NoteEntity
+            {
+                OperationId = op.Id,
+                NoteText    = noteText,
+                AuthorName  = authorName,
+                AuthorDept  = authorDept,
+                CreatedAt   = DateTime.Now,
+            };
+
+            _db.Notes.Add(note);
+            await _db.SaveChangesAsync();
+
+            return new NoteDto
+            {
+                NoteText   = note.NoteText,
+                AuthorName = note.AuthorName,
+                AuthorDept = note.AuthorDept,
+                CreatedAt  = note.CreatedAt.ToString("dd MMM yyyy HH:mm"),
+            };
+        }
     }
 
     // Helper classes

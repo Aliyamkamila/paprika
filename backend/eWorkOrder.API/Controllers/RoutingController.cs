@@ -48,10 +48,27 @@ namespace eWorkOrder.API.Controllers
 
                 return Ok(new
                 {
-                    success    = true,
-                    message    = message,
-                    jobNo      = routing.JobNo,
-                    operations = routing.Operations.Count,
+                    success       = true,
+                    message       = message,
+                    jobNo         = routing.JobNo,
+                    itemDescription = routing.ItemDescription,
+                    quantity      = routing.Quantity,
+                    serialNo      = routing.SerialNo,
+                    salesOrder    = routing.SalesOrder,
+                    barcodeAssembly = routing.BarcodeAssembly,
+                    totalOperations = routing.Operations.Count,
+                    operations    = routing.Operations.Select(op => new
+                    {
+                        operationNo          = op.OperationNo,
+                        operationDescription = op.OperationDescription,
+                        department           = op.Department,
+                        machine              = op.Machine,
+                        scheduledStart       = op.ScheduledStart,
+                        scheduledFinish      = op.ScheduledFinish,
+                        barcodeValue         = op.BarcodeValue,
+                        workInstructions     = op.WorkInstructions,
+                        materials            = op.Materials,
+                    }).ToList(),
                 });
             }
             catch (Exception ex)

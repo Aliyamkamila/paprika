@@ -259,6 +259,51 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
             ))}
           </div>
 
+          {/* Routing Sheet Info */}
+          {(detail.serialNo || detail.salesOrder || detail.assemblyNo) && (
+            <div style={{
+              display: 'flex',
+              gap: '20px',
+              padding: '12px 16px',
+              background: 'rgba(2,188,148,0.04)',
+              borderRadius: '10px',
+              border: '1px solid rgba(2,188,148,0.10)',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="ti ti-barcode" style={{ fontSize: '14px', color: '#02BC94' }} aria-hidden="true" />
+                <span style={{ fontSize: '11px', color: 'rgba(5,50,43,0.4)' }}>Serial No:</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#05322B', fontFamily: 'monospace' }}>
+                  {detail.serialNo ?? '-'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="ti ti-receipt" style={{ fontSize: '14px', color: '#02BC94' }} aria-hidden="true" />
+                <span style={{ fontSize: '11px', color: 'rgba(5,50,43,0.4)' }}>Sales Order:</span>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#05322B' }}>
+                  {detail.salesOrder ?? '-'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="ti ti-package" style={{ fontSize: '14px', color: '#02BC94' }} aria-hidden="true" />
+                <span style={{ fontSize: '11px', color: 'rgba(5,50,43,0.4)' }}>Assembly:</span>
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#05322B', fontFamily: 'monospace' }}>
+                  {detail.assemblyNo ?? '-'}
+                </span>
+              </div>
+              {detail.lotNo && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="ti ti-archive" style={{ fontSize: '14px', color: '#02BC94' }} aria-hidden="true" />
+                  <span style={{ fontSize: '11px', color: 'rgba(5,50,43,0.4)' }}>Lot No:</span>
+                  <span style={{ fontSize: '12px', fontWeight: '500', color: '#05322B' }}>
+                    {detail.lotNo}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Progress Bar */}
           <div>
             <div style={{
@@ -333,7 +378,7 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
               color: 'rgba(5,50,43,0.3)',
               marginTop: '2px',
             }}>
-              Klik operation untuk tambah note
+              Klik operation untuk lihat detail
             </div>
           </div>
           <span style={{
@@ -355,7 +400,7 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
                 borderBottom: '1px solid rgba(5,50,43,0.06)',
                 background: 'rgba(5,50,43,0.02)',
               }}>
-                {['Op #', 'Description', 'Status', 'Dept', 'Employee'].map((h, i) => (
+                {['Op #', 'Description', 'Status', 'Dept', 'Employee', 'Routing'].map((h, i) => (
                   <th key={i} style={{
                     textAlign: i === 0 ? 'left' : 'center',
                     padding: '10px 16px',
@@ -375,12 +420,13 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
                 const opNotes = notes[op.operationNum] ?? [];
                 const isInProgress = op.status?.toUpperCase() === 'IN PROGRESS';
                 const isLast = i === detail.operations.length - 1;
+                const hasRouting = op.hasRoutingData;
 
                 return (
                   <React.Fragment key={i}>
                     <tr
                       onClick={() => {
-                        setSelectedOp(op);
+                        setSelectedOpDetail(op.operationNum);
                       }}
                       style={{
                         borderBottom: opNotes.length === 0 && !isLast ? '1px solid rgba(5,50,43,0.04)' : 'none',
@@ -393,9 +439,6 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = isInProgress ? 'rgba(244,162,97,0.04)' : 'transparent';
-                      }}
-                      onDoubleClick={() => {
-                        setSelectedOpDetail(op.operationNum);
                       }}
                     >
                       <td style={{
@@ -447,12 +490,38 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
                       }}>
                         {op.employeeName}
                       </td>
+                      <td style={{
+                        padding: '11px 16px',
+                        textAlign: 'center',
+                      }}>
+                        {hasRouting ? (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                            fontSize: '10px',
+                            color: '#02BC94',
+                            fontWeight: '500',
+                          }}>
+                            <i className="ti ti-file-spreadsheet" aria-hidden="true" />
+                            {op.workInstructionCount > 0 && <span title="Work Instructions">{op.workInstructionCount} WI</span>}
+                            {op.materialCount > 0 && <span title="Materials">· {op.materialCount} Mat</span>}
+                          </span>
+                        ) : (
+                          <span style={{
+                            fontSize: '10px',
+                            color: 'rgba(5,50,43,0.2)',
+                          }}>
+                            —
+                          </span>
+                        )}
+                      </td>
                     </tr>
 
                     {/* Notes */}
                     {opNotes.length > 0 && (
                       <tr>
-                        <td colSpan={5} style={{
+                        <td colSpan={6} style={{
                           padding: '8px 16px 12px 80px',
                           borderBottom: !isLast ? '1px solid rgba(5,50,43,0.04)' : 'none',
                           background: 'rgba(5,50,43,0.015)',
@@ -603,6 +672,7 @@ const WorkOrderDetail = ({ woNumber, onBack }) => {
           woNumber={detail.woNumber}
           operationNum={selectedOpDetail}
           onClose={() => setSelectedOpDetail(null)}
+          onNoteSaved={handleSaveNote}
         />
       )}
     </div>

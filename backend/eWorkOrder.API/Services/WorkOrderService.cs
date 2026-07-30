@@ -43,6 +43,12 @@ namespace eWorkOrder.API.Services
                                         .FirstOrDefault(o => o.OpStatus != "COMPLETED")?.OperationNum
                                         ?? w.Operations.LastOrDefault()?.OperationNum,
                     OperationCount   = w.Operations.Count,
+                    HasRoutingData   = !string.IsNullOrEmpty(w.AssemblyNo) ||
+                                        !string.IsNullOrEmpty(w.SerialNo) ||
+                                        w.Operations.Any(o => !string.IsNullOrEmpty(o.BarcodeValue) ||
+                                                               o.WorkInstructions.Count > 0 ||
+                                                               o.Materials.Count > 0),
+                    SalesOrder       = w.SalesOrder,
                 }).ToList()
             };
         }
@@ -65,12 +71,21 @@ namespace eWorkOrder.API.Services
                                 .FirstOrDefault()?.Key,
                 WoStartDate = wo.ScheduledStart?.ToString("dd/MM/yyyy"),
                 WoEndDate   = wo.ScheduledFinish?.ToString("dd/MM/yyyy"),
+
+                // Routing sheet fields
+                AssemblyNo     = wo.AssemblyNo,
+                SerialNo       = wo.SerialNo,
+                SalesOrder     = wo.SalesOrder,
+                LotNo          = wo.LotNo,
+                BarcodeJobNo   = wo.AssemblyNo,
+                BarcodeAssembly = wo.AssemblyNo,
+
                 Operations  = wo.Operations
                     .OrderBy(o => {
                         int.TryParse(o.OperationNum, out var n);
                         return n;
                     })
-                    .Select(o => new OperationTimelineDto
+                    .Select(o => new RoutingOpSummaryDto
                     {
                         OperationNum = o.OperationNum,
                         Description  = o.Description,
@@ -84,6 +99,14 @@ namespace eWorkOrder.API.Services
                         ActHours     = o.Employees.Sum(e => e.ActHours ?? 0),
                         ClockIn      = o.Employees.Min(e => e.ClockIn)?.ToString("dd/MM/yyyy HH:mm"),
                         ClockOut     = o.Employees.Max(e => e.ClockOut)?.ToString("dd/MM/yyyy HH:mm"),
+
+                        // Routing fields
+                        BarcodeValue        = o.BarcodeValue,
+                        WorkInstructionCount = o.WorkInstructions.Count,
+                        MaterialCount       = o.Materials.Count,
+                        HasRoutingData      = !string.IsNullOrEmpty(o.BarcodeValue) ||
+                                               o.WorkInstructions.Count > 0 ||
+                                               o.Materials.Count > 0,
                     })
                     .ToList()
             };
@@ -92,6 +115,11 @@ namespace eWorkOrder.API.Services
         public async Task<OperationDetailDto?> GetOperationDetailAsync(string woNumber, string operationNum)
         {
             return await _repo.GetOperationDetailAsync(woNumber, operationNum);
+        }
+
+        public async Task<NoteDto?> CreateNoteAsync(string woNumber, string operationNum, string noteText, string authorName, string authorDept)
+        {
+            return await _repo.CreateNoteAsync(woNumber, operationNum, noteText, authorName, authorDept);
         }
     }
 }
